@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>성경 소요리문답</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+  <div class="cross-icon">✝</div>
+  <h1>성경 소요리문답</h1>
+  <div class="divider"></div>
+  <p class="subtitle">웨스트민스터 소요리문답 전문 (107문) · 개역개정</p>
+</header>
+
+<main>
+
+  <!-- 리스트 뷰 -->
+  <section id="list-view" aria-label="소요리문답 목록">
+    <div class="list-toolbar">
+      <span class="section-label">▸ 문항을 선택하세요</span>
+      <input
+        id="search"
+        class="search-input"
+        type="search"
+        placeholder="문번호 또는 키워드 검색"
+        aria-label="문항 검색"
+      >
+    </div>
+    <div class="cards-grid" id="cards-container" role="list"></div>
+  </section>
+
+  <!-- 상세 뷰 -->
+  <section id="detail-view" class="hidden" aria-label="문항 상세">
+    <nav class="detail-nav" aria-label="문항 탐색">
+      <button id="btn-back"  class="nav-btn" aria-label="목록으로">← 목록</button>
+      <span class="nav-spacer"></span>
+      <button id="btn-prev"  class="nav-btn ghost" aria-label="이전 문항">‹ 이전</button>
+      <span  id="nav-counter" class="nav-counter" aria-live="polite"></span>
+      <button id="btn-next"  class="nav-btn ghost" aria-label="다음 문항">다음 ›</button>
+    </nav>
+
+    <div class="detail-header">
+      <div id="d-num"      class="detail-num"      aria-hidden="true"></div>
+      <div id="d-question" class="detail-question" role="heading" aria-level="2"></div>
+    </div>
+
+    <div class="answer-box" role="region" aria-label="답변">
+      <div class="answer-label" aria-hidden="true">답</div>
+      <p id="d-answer" class="answer-text"></p>
+    </div>
+
+    <div class="verses-box" role="region" aria-label="성경 참고 구절">
+      <div class="verses-label">🌿 성경 참고 구절 (개역개정)</div>
+      <div id="d-verses"></div>
+    </div>
+
+    <div id="d-quiz" class="quiz-box" role="region" aria-label="빈칸 퀴즈"></div>
+  </section>
+
+</main>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
