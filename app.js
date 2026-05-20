@@ -14,6 +14,16 @@ const navCounter  = document.getElementById('nav-counter');
 
 let currentIndex = null;
 
+function getStablePageUrl() {
+  const { pathname, search } = location;
+
+  if (pathname.endsWith('/') || /\.html$/i.test(pathname)) {
+    return `${pathname}${search}`;
+  }
+
+  return `${pathname}/${search}`;
+}
+
 /* ── 리스트 렌더링 ── */
 function renderList(query = '') {
   const q = query.trim().toLowerCase();
@@ -86,7 +96,7 @@ function showList() {
   currentIndex = null;
   detailView.classList.add('hidden');
   listView.classList.remove('hidden');
-  history.pushState(null, '', location.pathname);
+  history.pushState(null, '', getStablePageUrl());
 }
 
 /* ── 라우팅 ── */
