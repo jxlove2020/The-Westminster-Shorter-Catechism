@@ -499,6 +499,14 @@ btnFontDecrease.addEventListener('click', () => adjustFontSize(-FONT_SIZE_STEP))
 btnFontIncrease.addEventListener('click', () => adjustFontSize(FONT_SIZE_STEP));
 window.addEventListener('popstate', handleRoute);
 
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(error => {
+      console.warn('Service worker registration failed:', error);
+    });
+  });
+}
+
 updateGlobalFontSizeCss();
 renderList();
 handleRoute();
