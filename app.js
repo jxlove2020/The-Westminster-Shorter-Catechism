@@ -16,9 +16,32 @@ const styleElement = document.createElement('style');
 document.head.appendChild(styleElement);
 
 const FONT_SIZE_STORAGE_KEY = 'catechism-font-size-scale';
-let currentFontSizeScale = parseFloat(localStorage.getItem(FONT_SIZE_STORAGE_KEY)) || 1.0; // Default scale 1.0
+const DEFAULT_FONT_SIZE_SCALE = 1.0;
+let currentFontSizeScale = loadStoredFontSizeScale();
 
 let currentIndex = null;
+
+function loadStoredFontSizeScale() {
+  try {
+    const storedScale = Number.parseFloat(localStorage.getItem(FONT_SIZE_STORAGE_KEY));
+
+    if (!Number.isFinite(storedScale)) {
+      return DEFAULT_FONT_SIZE_SCALE;
+    }
+
+    return Math.max(0.8, Math.min(1.5, storedScale));
+  } catch (error) {
+    return DEFAULT_FONT_SIZE_SCALE;
+  }
+}
+
+function persistFontSizeScale() {
+  try {
+    localStorage.setItem(FONT_SIZE_STORAGE_KEY, currentFontSizeScale);
+  } catch (error) {
+    // Ignore storage failures and keep the page usable.
+  }
+}
 
 function getStablePageUrl() {
   const { pathname, search } = location;
@@ -395,7 +418,7 @@ function updateGlobalFontSizeCss() {
     .quiz-a { font-size: ${quizAnswerBaseSize * currentFontSizeScale}em; }
   `;
 
-  localStorage.setItem(FONT_SIZE_STORAGE_KEY, currentFontSizeScale);
+  persistFontSizeScale();
 
   if (fontSizeDisplay) {
     fontSizeDisplay.textContent = `${Math.round(currentFontSizeScale * 100)}%`;
@@ -462,5 +485,6 @@ btnFontDecrease.addEventListener('click', () => adjustFontSize(-FONT_SIZE_STEP))
 btnFontIncrease.addEventListener('click', () => adjustFontSize(FONT_SIZE_STEP));
 window.addEventListener('popstate', handleRoute);
 
+updateGlobalFontSizeCss();
 renderList();
 handleRoute();
