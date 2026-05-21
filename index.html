@@ -3,15 +3,23 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>소요리문답</title>
-    <link rel="stylesheet" href="style.css?v=20260521-1" />
+    <title>성경 소요리문답</title>
+    <link rel="stylesheet" href="style.css?v=20260521-2" />
   </head>
   <body>
     <header>
-      <div class="cross-icon" aria-hidden="true">✝</div>
-      <h1>소요리문답</h1>
+      <div id="detail-toolbar" class="detail-toolbar hidden" aria-label="상세 보기 도구">
+        <button id="btn-back" class="nav-btn" aria-label="목록으로 이동">목록</button>
+        <div class="font-controls">
+          <button id="btn-font-decrease" class="nav-btn font-btn" aria-label="글자 작게">가-</button>
+          <span id="font-size-display" class="font-display">100%</span>
+          <button id="btn-font-increase" class="nav-btn font-btn" aria-label="글자 크게">가+</button>
+        </div>
+      </div>
+      <div class="cross-icon" aria-hidden="true">†</div>
+      <h1>성경 소요리문답</h1>
       <div class="divider"></div>
-      <p class="subtitle">웨스트민스터 소요리문답 107문</p>
+      <p class="subtitle">웨스트민스터 소요리문답 전문 (107문) · 개역개정</p>
     </header>
 
     <main>
@@ -31,13 +39,6 @@
 
       <section id="detail-view" class="hidden" aria-label="문항 상세">
         <nav class="detail-nav" aria-label="문항 이동">
-          <button id="btn-back" class="nav-btn" aria-label="목록으로 이동">목록</button>
-          <span class="nav-spacer"></span>
-          <div class="font-controls">
-            <button id="btn-font-decrease" class="nav-btn font-btn" aria-label="글씨 작게">가-</button>
-            <span id="font-size-display" class="font-display">100%</span>
-            <button id="btn-font-increase" class="nav-btn font-btn" aria-label="글씨 크게">가+</button>
-          </div>
           <button id="btn-prev" class="nav-btn ghost" aria-label="이전 문항">이전</button>
           <span id="nav-counter" class="nav-counter" aria-live="polite"></span>
           <button id="btn-next" class="nav-btn ghost" aria-label="다음 문항">다음</button>
@@ -62,7 +63,7 @@
       </section>
     </main>
 
-    <script src="data.js?v=20260521-1"></script>
-    <script src="app.js?v=20260521-1"></script>
+    <script src="data.js?v=20260521-2"></script>
+    <script src="app.js?v=20260521-2"></script>
   </body>
 </html>

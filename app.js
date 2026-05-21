@@ -1,5 +1,6 @@
 const listView = document.getElementById('list-view');
 const detailView = document.getElementById('detail-view');
+const detailToolbar = document.getElementById('detail-toolbar');
 const cardsEl = document.getElementById('cards-container');
 const searchEl = document.getElementById('search');
 const dNum = document.getElementById('d-num');
@@ -189,6 +190,9 @@ function showDetail(index) {
 
   listView.classList.add('hidden');
   detailView.classList.remove('hidden');
+  if (detailToolbar) {
+    detailToolbar.classList.remove('hidden');
+  }
   window.scrollTo({ top: 0, behavior: 'smooth' });
 
   history.pushState({ index }, '', `#q${item.num}`);
@@ -198,6 +202,9 @@ function showList() {
   currentIndex = null;
   detailView.classList.add('hidden');
   listView.classList.remove('hidden');
+  if (detailToolbar) {
+    detailToolbar.classList.add('hidden');
+  }
   history.pushState(null, '', getStablePageUrl());
 }
 
