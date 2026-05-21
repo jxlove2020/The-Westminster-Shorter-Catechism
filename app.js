@@ -10,9 +10,7 @@ const btnBack = document.getElementById('btn-back');
 const btnPrev = document.getElementById('btn-prev');
 const btnNext = document.getElementById('btn-next');
 const navCounter = document.getElementById('nav-counter');
-const dQuiz = document.getElementById('d-quiz');
 const fontSizeDisplay = document.getElementById('font-size-display');
-
 // Add a style element to the head for dynamic font sizing
 const styleElement = document.createElement('style');
 document.head.appendChild(styleElement);
@@ -372,6 +370,36 @@ function renderQuiz(item) {
     blanks.forEach(el => el.classList.remove('revealed'));
     btnReveal.disabled = false;
   });
+}
+
+function adjustFontSize(delta) {
+  currentFontSizeScale = Math.round((currentFontSizeScale + delta) * 10) / 10;
+  currentFontSizeScale = Math.max(MIN_FONT_SIZE_SCALE, Math.min(MAX_FONT_SIZE_SCALE, currentFontSizeScale));
+  updateGlobalFontSizeCss();
+}
+
+function updateGlobalFontSizeCss() {
+  const questionBaseSize = 1.1;
+  const answerBaseSize = 1.0;
+  const verseRefBaseSize = 0.9;
+  const verseTextBaseSize = 1.0;
+  const quizQuestionBaseSize = 1.1;
+  const quizAnswerBaseSize = 1.0;
+
+  styleElement.textContent = `
+    #d-question { font-size: ${questionBaseSize * currentFontSizeScale}em; }
+    #d-answer { font-size: ${answerBaseSize * currentFontSizeScale}em; }
+    .verse-item .verse-ref { font-size: ${verseRefBaseSize * currentFontSizeScale}em; }
+    .verse-item .verse-text { font-size: ${verseTextBaseSize * currentFontSizeScale}em; }
+    .quiz-q { font-size: ${quizQuestionBaseSize * currentFontSizeScale}em; }
+    .quiz-a { font-size: ${quizAnswerBaseSize * currentFontSizeScale}em; }
+  `;
+
+  localStorage.setItem(FONT_SIZE_STORAGE_KEY, currentFontSizeScale);
+
+  if (fontSizeDisplay) {
+    fontSizeDisplay.textContent = `${Math.round(currentFontSizeScale * 100)}%`;
+  }
 }
 
 cardsEl.addEventListener('click', event => {
