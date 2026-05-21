@@ -4,22 +4,30 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>성경 소요리문답</title>
-    <link rel="stylesheet" href="style.css?v=20260521-2" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&family=Noto+Serif+KR:wght@600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
   </head>
   <body>
     <header>
-      <div id="detail-toolbar" class="detail-toolbar hidden" aria-label="상세 보기 도구">
-        <button id="btn-back" class="nav-btn" aria-label="목록으로 이동">목록</button>
-        <div class="font-controls">
-          <button id="btn-font-decrease" class="nav-btn font-btn" aria-label="글자 작게">가-</button>
-          <span id="font-size-display" class="font-display">100%</span>
-          <button id="btn-font-increase" class="nav-btn font-btn" aria-label="글자 크게">가+</button>
+      <div class="header-shell">
+        <div id="detail-toolbar" class="detail-toolbar hidden" aria-label="상세 보기 도구">
+          <button id="btn-back" class="nav-btn" aria-label="목록으로 이동">목록</button>
+          <div class="font-controls">
+            <button id="btn-font-decrease" class="nav-btn font-btn" aria-label="글자 작게">가-</button>
+            <span id="font-size-display" class="font-display">100%</span>
+            <button id="btn-font-increase" class="nav-btn font-btn" aria-label="글자 크게">가+</button>
+          </div>
         </div>
+        <p class="site-mark">WESTMINSTER CATECHISM</p>
+        <h1>성경 소요리문답</h1>
+        <div class="header-rule" aria-hidden="true"></div>
+        <p class="subtitle">웨스트민스터 소요리문답 전문 107문 · 개역개정</p>
       </div>
-      <div class="cross-icon" aria-hidden="true">†</div>
-      <h1>성경 소요리문답</h1>
-      <div class="divider"></div>
-      <p class="subtitle">웨스트민스터 소요리문답 전문 (107문) · 개역개정</p>
     </header>
 
     <main>
@@ -63,7 +71,7 @@
       </section>
     </main>
 
-    <script src="data.js?v=20260521-2"></script>
-    <script src="app.js?v=20260521-2"></script>
+    <script src="data.js"></script>
+    <script src="app.js"></script>
   </body>
 </html>

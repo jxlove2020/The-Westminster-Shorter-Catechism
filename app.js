@@ -1,6 +1,7 @@
 const listView = document.getElementById('list-view');
 const detailView = document.getElementById('detail-view');
 const detailToolbar = document.getElementById('detail-toolbar');
+const pageBody = document.body;
 const cardsEl = document.getElementById('cards-container');
 const searchEl = document.getElementById('search');
 const dNum = document.getElementById('d-num');
@@ -190,6 +191,9 @@ function showDetail(index) {
 
   listView.classList.add('hidden');
   detailView.classList.remove('hidden');
+  if (pageBody) {
+    pageBody.classList.add('detail-mode');
+  }
   if (detailToolbar) {
     detailToolbar.classList.remove('hidden');
   }
@@ -202,6 +206,9 @@ function showList() {
   currentIndex = null;
   detailView.classList.add('hidden');
   listView.classList.remove('hidden');
+  if (pageBody) {
+    pageBody.classList.remove('detail-mode');
+  }
   if (detailToolbar) {
     detailToolbar.classList.add('hidden');
   }
