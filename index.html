@@ -1,68 +1,68 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>성경 소요리문답</title>
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>소요리문답</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header>
+      <div class="cross-icon" aria-hidden="true">✝</div>
+      <h1>소요리문답</h1>
+      <div class="divider"></div>
+      <p class="subtitle">웨스트민스터 소요리문답 107문</p>
+    </header>
 
-<header>
-  <div class="cross-icon">✝</div>
-  <h1>성경 소요리문답</h1>
-  <div class="divider"></div>
-  <p class="subtitle">웨스트민스터 소요리문답 전문 (107문) · 개역개정</p>
-</header>
+    <main>
+      <section id="list-view" aria-label="소요리문답 목록">
+        <div class="list-toolbar">
+          <span class="section-label">문항 선택</span>
+          <input
+            id="search"
+            class="search-input"
+            type="search"
+            placeholder="문번호 또는 단어 검색"
+            aria-label="문항 검색"
+          />
+        </div>
+        <div class="cards-grid" id="cards-container" role="list"></div>
+      </section>
 
-<main>
+      <section id="detail-view" class="hidden" aria-label="문항 상세">
+        <nav class="detail-nav" aria-label="문항 이동">
+          <button id="btn-back" class="nav-btn" aria-label="목록으로 이동">목록</button>
+          <span class="nav-spacer"></span>
+          <div class="font-controls">
+            <button id="btn-font-decrease" class="nav-btn font-btn" aria-label="글씨 작게">가-</button>
+            <span id="font-size-display" class="font-display">100%</span>
+            <button id="btn-font-increase" class="nav-btn font-btn" aria-label="글씨 크게">가+</button>
+          </div>
+          <button id="btn-prev" class="nav-btn ghost" aria-label="이전 문항">이전</button>
+          <span id="nav-counter" class="nav-counter" aria-live="polite"></span>
+          <button id="btn-next" class="nav-btn ghost" aria-label="다음 문항">다음</button>
+        </nav>
 
-  <!-- 리스트 뷰 -->
-  <section id="list-view" aria-label="소요리문답 목록">
-    <div class="list-toolbar">
-      <span class="section-label">▸ 문항을 선택하세요</span>
-      <input
-        id="search"
-        class="search-input"
-        type="search"
-        placeholder="문번호 또는 키워드 검색"
-        aria-label="문항 검색"
-      >
-    </div>
-    <div class="cards-grid" id="cards-container" role="list"></div>
-  </section>
+        <div class="detail-header">
+          <div id="d-num" class="detail-num" aria-hidden="true"></div>
+          <div id="d-question" class="detail-question" role="heading" aria-level="2"></div>
+        </div>
 
-  <!-- 상세 뷰 -->
-  <section id="detail-view" class="hidden" aria-label="문항 상세">
-    <nav class="detail-nav" aria-label="문항 탐색">
-      <button id="btn-back"  class="nav-btn" aria-label="목록으로">← 목록</button>
-      <span class="nav-spacer"></span>
-      <button id="btn-prev"  class="nav-btn ghost" aria-label="이전 문항">‹ 이전</button>
-      <span  id="nav-counter" class="nav-counter" aria-live="polite"></span>
-      <button id="btn-next"  class="nav-btn ghost" aria-label="다음 문항">다음 ›</button>
-    </nav>
+        <div class="answer-box" role="region" aria-label="답">
+          <div class="answer-label" aria-hidden="true">답</div>
+          <p id="d-answer" class="answer-text"></p>
+        </div>
 
-    <div class="detail-header">
-      <div id="d-num"      class="detail-num"      aria-hidden="true"></div>
-      <div id="d-question" class="detail-question" role="heading" aria-level="2"></div>
-    </div>
+        <div class="verses-box" role="region" aria-label="성경 참고 구절">
+          <div class="verses-label">성경 참고 구절</div>
+          <div id="d-verses"></div>
+        </div>
 
-    <div class="answer-box" role="region" aria-label="답변">
-      <div class="answer-label" aria-hidden="true">답</div>
-      <p id="d-answer" class="answer-text"></p>
-    </div>
+        <div id="d-quiz" class="quiz-box" role="region" aria-label="빈칸 퀴즈"></div>
+      </section>
+    </main>
 
-    <div class="verses-box" role="region" aria-label="성경 참고 구절">
-      <div class="verses-label">🌿 성경 참고 구절 (개역개정)</div>
-      <div id="d-verses"></div>
-    </div>
-
-    <div id="d-quiz" class="quiz-box" role="region" aria-label="빈칸 퀴즈"></div>
-  </section>
-
-</main>
-
-<script src="data.js"></script>
-<script src="app.js"></script>
-</body>
+    <script src="data.js"></script>
+    <script src="app.js"></script>
+  </body>
 </html>
