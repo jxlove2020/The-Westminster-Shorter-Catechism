@@ -1,10 +1,11 @@
 const CACHE_NAME = 'catechism-shell-v3';
+const NETWORK_FIRST = ['./data.js'];
+
 const CORE_ASSETS = [
   './',
   './index.html',
   './style.css',
   './app.js',
-  './data.js',
   './manifest.webmanifest',
   './icons/favicon-32.png',
   './icons/apple-touch-icon.png',
@@ -51,6 +52,21 @@ self.addEventListener('fetch', event => {
   }
 
   if (!isSameOrigin) {
+    return;
+  }
+
+  const isNetworkFirst = NETWORK_FIRST.some(path => url.pathname.endsWith(path.replace('.', '')));
+
+  if (isNetworkFirst) {
+    event.respondWith(
+      fetch(request)
+        .then(response => {
+          const responseClone = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(request, responseClone));
+          return response;
+        })
+        .catch(() => caches.match(request)),
+    );
     return;
   }
 
