@@ -1,4 +1,4 @@
-const CACHE_NAME = 'catechism-shell-v3';
+const CACHE_NAME = 'catechism-shell-v4';
 const NETWORK_FIRST = ['./data.js'];
 
 const CORE_ASSETS = [
