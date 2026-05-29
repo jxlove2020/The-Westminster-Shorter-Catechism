@@ -12,6 +12,9 @@ const btnBack = document.getElementById('btn-back');
 const btnPrev = document.getElementById('btn-prev');
 const btnNext = document.getElementById('btn-next');
 const navCounter = document.getElementById('nav-counter');
+const btnPrevBottom = document.getElementById('btn-prev-bottom');
+const btnNextBottom = document.getElementById('btn-next-bottom');
+const navCounterBottom = document.getElementById('nav-counter-bottom');
 const fontSizeDisplay = document.getElementById('font-size-display');
 // Add a style element to the head for dynamic font sizing
 const styleElement = document.createElement('style');
@@ -186,6 +189,9 @@ function showDetail(index) {
   btnPrev.disabled = index === 0;
   btnNext.disabled = index === catechism.length - 1;
   navCounter.textContent = `${index + 1} / ${catechism.length}`;
+  btnPrevBottom.disabled = index === 0;
+  btnNextBottom.disabled = index === catechism.length - 1;
+  navCounterBottom.textContent = `${index + 1} / ${catechism.length}`;
 
   renderQuiz(item);
 
@@ -455,14 +461,16 @@ cardsEl.addEventListener('click', event => {
 
 btnBack.addEventListener('click', showList);
 btnPrev.addEventListener('click', () => {
-  if (currentIndex > 0) {
-    showDetail(currentIndex - 1);
-  }
+  if (currentIndex > 0) showDetail(currentIndex - 1);
 });
 btnNext.addEventListener('click', () => {
-  if (currentIndex < catechism.length - 1) {
-    showDetail(currentIndex + 1);
-  }
+  if (currentIndex < catechism.length - 1) showDetail(currentIndex + 1);
+});
+btnPrevBottom.addEventListener('click', () => {
+  if (currentIndex > 0) showDetail(currentIndex - 1);
+});
+btnNextBottom.addEventListener('click', () => {
+  if (currentIndex < catechism.length - 1) showDetail(currentIndex + 1);
 });
 
 searchEl.addEventListener('input', event => renderList(event.target.value));

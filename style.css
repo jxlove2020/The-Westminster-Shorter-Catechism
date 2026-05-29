@@ -125,6 +125,7 @@ body.detail-mode header {
   padding-bottom: 8px;
 }
 
+
 body.detail-mode .detail-toolbar {
   margin-bottom: 10px;
 }
@@ -299,13 +300,18 @@ main {
   padding: 10px 12px;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: space-between;
   gap: 8px;
   border: 1px solid var(--line);
   border-radius: 18px;
   background: rgba(255, 252, 247, 0.88);
   backdrop-filter: blur(10px);
   box-shadow: var(--shadow-sm);
+}
+
+.detail-nav-bottom {
+  position: static;
+  margin: 14px 0 32px;
 }
 
 .nav-btn,
@@ -540,6 +546,15 @@ main {
   box-shadow: 0 8px 20px rgba(79, 92, 56, 0.16);
 }
 
+@media (min-width: 721px) {
+  .answer-text,
+  .verse-text,
+  .quiz-q,
+  .quiz-a {
+    text-align: justify;
+  }
+}
+
 @media (max-width: 720px) {
   .cards-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -547,6 +562,11 @@ main {
 
   .detail-toolbar {
     flex-wrap: wrap;
+  }
+
+  body.detail-mode .header-shell {
+    padding-left: 0;
+    padding-right: 0;
   }
 
   .detail-toolbar .font-controls {
@@ -598,6 +618,11 @@ main {
   body.detail-mode header {
     padding-top: 6px;
     padding-bottom: 6px;
+  }
+
+  body.detail-mode .header-shell {
+    padding-left: 0;
+    padding-right: 0;
   }
 
   body.detail-mode .detail-toolbar {
@@ -700,5 +725,9 @@ main {
 
   .quiz-btn {
     width: 100%;
+  }
+
+  .detail-nav-bottom {
+    margin-top: 14px;
   }
 }
