@@ -667,7 +667,9 @@ main {
   }
 
   #btn-prev,
-  #btn-next {
+  #btn-next,
+  #btn-prev-bottom,
+  #btn-next-bottom {
     width: 100%;
     min-width: 0;
     padding: 0 10px;
