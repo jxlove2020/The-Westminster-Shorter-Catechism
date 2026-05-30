@@ -1,10 +1,9 @@
-const CACHE_NAME = 'catechism-shell-v5';
-const NETWORK_FIRST = ['./data.js'];
+const CACHE_NAME = 'catechism-shell-v6';
+const NETWORK_FIRST = ['./data.js', './style.css'];
 
 const CORE_ASSETS = [
   './',
   './index.html',
-  './style.css',
   './app.js',
   './manifest.webmanifest',
   './icons/favicon-32.png',

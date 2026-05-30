@@ -329,53 +329,6 @@ const FONT_SIZE_STEP = 0.1;
 const MIN_FONT_SIZE_SCALE = 0.8;
 const MAX_FONT_SIZE_SCALE = 1.5;
 
-function adjustFontSize(delta) {
-  currentFontSizeScale = Math.round((currentFontSizeScale + delta) * 10) / 10; // 소수점 1자리 반올림
-  currentFontSizeScale = Math.max(MIN_FONT_SIZE_SCALE, Math.min(MAX_FONT_SIZE_SCALE, currentFontSizeScale));
-  updateGlobalFontSizeCss();
-}
-
-function updateGlobalFontSizeCss() {
-  // Define base font sizes (em units) and scale them
-  const questionBaseSize = 1.1;
-  const answerBaseSize = 1.0;
-  const verseRefBaseSize = 0.9;
-  const verseTextBaseSize = 1.0;
-  const quizQuestionBaseSize = 1.1;
-  const quizAnswerBaseSize = 1.0;
-
-  styleElement.textContent = `
-    #d-question { font-size: ${questionBaseSize * currentFontSizeScale}em; }
-    #d-answer { font-size: ${answerBaseSize * currentFontSizeScale}em; }
-    .verse-item .verse-ref { font-size: ${verseRefBaseSize * currentFontSizeScale}em; }
-    .verse-item .verse-text { font-size: ${verseTextBaseSize * currentFontSizeScale}em; }
-    .quiz-q { font-size: ${quizQuestionBaseSize * currentFontSizeScale}em; }
-    .quiz-a { font-size: ${quizAnswerBaseSize * currentFontSizeScale}em; }
-    .font-controls {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      margin-right: 12px;
-    }
-    .font-btn {
-      padding: 2px 8px;
-      min-width: 36px;
-      font-weight: bold;
-    }
-    .font-display {
-      font-size: 0.85rem;
-      min-width: 42px;
-      text-align: center;
-      opacity: 0.7;
-    }
-  `;
-  localStorage.setItem(FONT_SIZE_STORAGE_KEY, currentFontSizeScale);
-  console.log('Font size updated to:', currentFontSizeScale); // Debugging line
-  if (fontSizeDisplay) {
-    fontSizeDisplay.textContent = `${Math.round(currentFontSizeScale * 100)}%`;
-  }
-}
-
 function renderQuiz(item) {
   const box = document.getElementById('d-quiz');
   const answer = safeAnswer(item);
