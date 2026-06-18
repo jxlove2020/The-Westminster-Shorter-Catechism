@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#f5efe4" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="소요리문답 암송" />
+    <title>소요리문답 암송</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png" />
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&family=Noto+Serif+KR:wght@600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="quiz.css" />
+  </head>
+  <body>
+    <header>
+      <div class="header-shell">
+        <div class="header-top-row">
+          <div class="header-text-group">
+            <p class="site-mark">WESTMINSTER CATECHISM</p>
+            <h1>소요리문답 암송</h1>
+          </div>
+          <div class="header-controls">
+            <div class="font-controls">
+              <button id="btn-font-decrease" class="nav-btn font-btn" aria-label="글자 작게">가-</button>
+              <span id="font-size-display" class="font-display">100%</span>
+              <button id="btn-font-increase" class="nav-btn font-btn" aria-label="글자 크게">가+</button>
+            </div>
+            <div class="header-menu" id="header-menu-wrap">
+              <button class="header-menu-btn" id="menu-btn" aria-label="메뉴 열기" aria-expanded="false" aria-haspopup="true">
+                <span aria-hidden="true"></span>
+                <span aria-hidden="true"></span>
+                <span aria-hidden="true"></span>
+              </button>
+              <div class="header-menu-popup hidden" id="menu-popup" role="menu">
+                <a href="index.html" class="header-menu-item" role="menuitem">← 목록</a>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="header-rule" aria-hidden="true"></div>
+        <p class="subtitle">문(問)을 보고 답(答)을 단계별로 가리며 암송하세요</p>
+      </div>
+    </header>
+
+    <main>
+      <div class="quiz-ctrl-wrap">
+        <div class="quiz-ctrl">
+          <div class="stage-row" role="group" aria-label="암송 단계 선택">
+            <button class="stage-btn" data-s="0" title="답을 모두 보여줍니다">전체 보기</button>
+            <button class="stage-btn" data-s="1" title="핵심 명사를 가립니다">1단계</button>
+            <button class="stage-btn" data-s="2" title="절반씩 번갈아 가립니다">2단계</button>
+            <button class="stage-btn" data-s="3" title="답을 전부 가립니다">3단계</button>
+          </div>
+          <div class="ctrl-foot">
+            <button class="reveal-btn hidden" id="reveal-all" type="button">전체 공개</button>
+            <span class="progress-label" id="progress" aria-live="polite">완료 0 / 107</span>
+          </div>
+        </div>
+      </div>
+
+      <ol class="quiz-list" id="quiz-list" aria-label="소요리문답 암송 목록"></ol>
+    </main>
+
+    <script src="data.js"></script>
+    <script src="quiz.js"></script>
+  </body>
+</html>

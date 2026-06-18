@@ -22,16 +22,38 @@
   <body>
     <header>
       <div class="header-shell">
-        <div id="detail-toolbar" class="detail-toolbar hidden" aria-label="상세 보기 도구">
-          <button id="btn-back" class="nav-btn" aria-label="목록으로 이동">목록</button>
-          <div class="font-controls">
-            <button id="btn-font-decrease" class="nav-btn font-btn" aria-label="글자 작게">가-</button>
-            <span id="font-size-display" class="font-display">100%</span>
-            <button id="btn-font-increase" class="nav-btn font-btn" aria-label="글자 크게">가+</button>
+        <div class="header-top-row">
+          <div class="header-text-group">
+            <p class="site-mark">WESTMINSTER CATECHISM</p>
+            <h1>소요리문답</h1>
+          </div>
+          <div class="header-controls">
+            <div class="font-controls">
+              <button id="btn-font-decrease" class="nav-btn font-btn" aria-label="글자 작게">가-</button>
+              <span id="font-size-display" class="font-display">100%</span>
+              <button id="btn-font-increase" class="nav-btn font-btn" aria-label="글자 크게">가+</button>
+            </div>
+            <div class="header-menu" id="header-menu-wrap">
+              <button
+                class="header-menu-btn"
+                id="menu-btn"
+                aria-label="메뉴 열기"
+                aria-expanded="false"
+                aria-haspopup="true"
+              >
+                <span aria-hidden="true"></span>
+                <span aria-hidden="true"></span>
+                <span aria-hidden="true"></span>
+              </button>
+              <div class="header-menu-popup hidden" id="menu-popup" role="menu">
+                <button class="header-menu-item header-menu-item-btn detail-only" id="btn-back" role="menuitem">
+                  ← 목록
+                </button>
+                <a href="quiz.html" class="header-menu-item" role="menuitem">📖 암송 모드</a>
+              </div>
+            </div>
           </div>
         </div>
-        <p class="site-mark">WESTMINSTER CATECHISM</p>
-        <h1>웨스트민스터 소요리문답</h1>
         <div class="header-rule" aria-hidden="true"></div>
         <p class="subtitle">웨스트민스터 소요리문답 전문 107문 · 개역개정</p>
       </div>

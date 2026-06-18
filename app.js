@@ -1,6 +1,5 @@
 const listView = document.getElementById('list-view');
 const detailView = document.getElementById('detail-view');
-const detailToolbar = document.getElementById('detail-toolbar');
 const pageBody = document.body;
 const cardsEl = document.getElementById('cards-container');
 const searchEl = document.getElementById('search');
@@ -197,12 +196,7 @@ function showDetail(index) {
 
   listView.classList.add('hidden');
   detailView.classList.remove('hidden');
-  if (pageBody) {
-    pageBody.classList.add('detail-mode');
-  }
-  if (detailToolbar) {
-    detailToolbar.classList.remove('hidden');
-  }
+  pageBody.classList.add('detail-mode');
   window.scrollTo({ top: 0, behavior: 'smooth' });
 
   history.pushState({ index }, '', `#q${item.num}`);
@@ -212,12 +206,7 @@ function showList() {
   currentIndex = null;
   detailView.classList.add('hidden');
   listView.classList.remove('hidden');
-  if (pageBody) {
-    pageBody.classList.remove('detail-mode');
-  }
-  if (detailToolbar) {
-    detailToolbar.classList.add('hidden');
-  }
+  pageBody.classList.remove('detail-mode');
   history.pushState(null, '', getStablePageUrl());
 }
 
@@ -383,6 +372,7 @@ function updateGlobalFontSizeCss() {
   const quizAnswerBaseSize = 1.0;
 
   styleElement.textContent = `
+    .q-preview { font-size: ${0.94 * currentFontSizeScale}em; }
     #d-question { font-size: ${questionBaseSize * currentFontSizeScale}em; }
     #d-answer { font-size: ${answerBaseSize * currentFontSizeScale}em; }
     .verse-item .verse-ref { font-size: ${verseRefBaseSize * currentFontSizeScale}em; }
@@ -459,6 +449,39 @@ const btnFontIncrease = document.getElementById('btn-font-increase');
 btnFontDecrease.addEventListener('click', () => adjustFontSize(-FONT_SIZE_STEP));
 btnFontIncrease.addEventListener('click', () => adjustFontSize(FONT_SIZE_STEP));
 window.addEventListener('popstate', handleRoute);
+
+// ── 헤더 메뉴 ───────────────────────────────────
+function setupMenu(btnId, popupId) {
+  const btn = document.getElementById(btnId);
+  const popup = document.getElementById(popupId);
+  if (!btn || !popup) return;
+
+  function close() {
+    popup.classList.add('hidden');
+    btn.classList.remove('open');
+    btn.setAttribute('aria-expanded', 'false');
+  }
+
+  btn.addEventListener('click', e => {
+    e.stopPropagation();
+    const willOpen = popup.classList.contains('hidden');
+    if (willOpen) {
+      const rect = btn.getBoundingClientRect();
+      popup.style.top = (rect.bottom + 8) + 'px';
+      popup.style.right = (window.innerWidth - rect.right) + 'px';
+      popup.classList.remove('hidden');
+      btn.classList.add('open');
+      btn.setAttribute('aria-expanded', 'true');
+    } else {
+      close();
+    }
+  });
+
+  document.addEventListener('click', close);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
+}
+
+setupMenu('menu-btn', 'menu-popup');
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
