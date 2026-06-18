@@ -1,10 +1,13 @@
-const CACHE_NAME = 'catechism-shell-v6';
+const CACHE_NAME = 'catechism-shell-v7';
 const NETWORK_FIRST = ['./data.js', './style.css'];
 
 const CORE_ASSETS = [
   './',
   './index.html',
   './app.js',
+  './quiz.html',
+  './quiz.js',
+  './quiz.css',
   './manifest.webmanifest',
   './icons/favicon-32.png',
   './icons/apple-touch-icon.png',
