@@ -252,6 +252,38 @@ $rangeTo.addEventListener('input', () => {
   applyRange();
 });
 
+// 터치 시작 시 더 가까운 핸들을 앞으로 올려서 조작 가능하게 함
+document.querySelector('.dual-range-track-wrap').addEventListener('pointerdown', (e) => {
+  const rect = e.currentTarget.getBoundingClientRect();
+  const pct = (e.clientX - rect.left) / rect.width;
+  const span = RANGE_MAX - RANGE_MIN;
+  const fromPct = (Number.parseInt($rangeFrom.value, 10) - RANGE_MIN) / span;
+  const toPct   = (Number.parseInt($rangeTo.value,   10) - RANGE_MIN) / span;
+  const fromIsCloser = Math.abs(pct - fromPct) <= Math.abs(pct - toPct);
+  if (fromIsCloser) {
+    $rangeFrom.style.zIndex = 5;
+    $rangeTo.style.zIndex   = 4;
+    $rangeFrom.classList.add('is-active');
+    $rangeTo.classList.remove('is-active');
+    $rangeFromVal.classList.add('is-active');
+    $rangeToVal.classList.remove('is-active');
+  } else {
+    $rangeTo.style.zIndex   = 5;
+    $rangeFrom.style.zIndex = 4;
+    $rangeTo.classList.add('is-active');
+    $rangeFrom.classList.remove('is-active');
+    $rangeToVal.classList.add('is-active');
+    $rangeFromVal.classList.remove('is-active');
+  }
+});
+
+document.addEventListener('pointerup', () => {
+  $rangeFrom.classList.remove('is-active');
+  $rangeTo.classList.remove('is-active');
+  $rangeFromVal.classList.remove('is-active');
+  $rangeToVal.classList.remove('is-active');
+});
+
 updateFill();
 
 document.getElementById('btn-font-decrease').addEventListener('click', () => {

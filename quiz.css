@@ -81,6 +81,12 @@
   font-size: 0.85rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.dual-val-box.is-active {
+  background: rgba(176, 130, 48, 0.12);
+  border-color: #b08230;
 }
 
 .dual-val-box::before {
@@ -147,6 +153,7 @@
   box-shadow: 0 1px 6px rgba(0, 0, 0, 0.2);
   cursor: pointer;
   pointer-events: all;
+  transition: background 0.15s, box-shadow 0.15s;
 }
 
 .dual-range-input::-moz-range-thumb {
@@ -158,6 +165,17 @@
   box-shadow: 0 1px 6px rgba(0, 0, 0, 0.2);
   cursor: pointer;
   pointer-events: all;
+  transition: background 0.15s, box-shadow 0.15s;
+}
+
+.dual-range-input.is-active::-webkit-slider-thumb {
+  background: #e8b84b;
+  box-shadow: 0 0 0 5px rgba(176, 130, 48, 0.3), 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.dual-range-input.is-active::-moz-range-thumb {
+  background: #e8b84b;
+  box-shadow: 0 0 0 5px rgba(176, 130, 48, 0.3), 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .ctrl-foot {
