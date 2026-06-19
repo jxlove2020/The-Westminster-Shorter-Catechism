@@ -53,6 +53,19 @@
     <main>
       <div class="quiz-ctrl-wrap">
         <div class="quiz-ctrl">
+          <div class="range-row" role="group" aria-label="구간 선택">
+            <div class="dual-range-vals">
+              <span class="dual-val-box" id="range-from-val">1</span>
+              <span class="dual-tilde">~</span>
+              <span class="dual-val-box" id="range-to-val">107</span>
+            </div>
+            <div class="dual-range-track-wrap">
+              <div class="dual-range-bg"></div>
+              <div class="dual-range-fill" id="range-fill"></div>
+              <input type="range" id="range-from" class="dual-range-input" min="1" max="107" value="1" aria-label="시작 번호" />
+              <input type="range" id="range-to"   class="dual-range-input" min="1" max="107" value="107" aria-label="끝 번호" />
+            </div>
+          </div>
           <div class="stage-row" role="group" aria-label="암송 단계 선택">
             <button class="stage-btn" data-s="0" title="답을 모두 보여줍니다">전체 보기</button>
             <button class="stage-btn" data-s="1" title="핵심 명사를 가립니다">1단계</button>

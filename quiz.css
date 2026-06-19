@@ -53,6 +53,113 @@
   box-shadow: 0 6px 16px rgba(79, 92, 56, 0.18);
 }
 
+.range-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+/* 값 표시 */
+.dual-range-vals {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.dual-val-box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 52px;
+  padding: 4px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 252, 247, 0.9);
+  color: var(--text);
+  font-size: 0.85rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.dual-val-box::before {
+  content: '문 ';
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-right: 2px;
+}
+
+.dual-tilde {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+/* 슬라이더 트랙 */
+.dual-range-track-wrap {
+  position: relative;
+  flex: 1;
+  height: 24px;
+  display: flex;
+  align-items: center;
+}
+
+.dual-range-bg,
+.dual-range-fill {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 4px;
+  border-radius: 2px;
+  pointer-events: none;
+}
+
+.dual-range-bg {
+  background: var(--line);
+}
+
+.dual-range-fill {
+  background: #b08230;
+  right: auto;
+}
+
+/* 두 range input 겹치기 */
+.dual-range-input {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  appearance: none;
+  -webkit-appearance: none;
+  background: transparent;
+  pointer-events: none;
+  margin: 0;
+  padding: 0;
+}
+
+.dual-range-input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #b08230;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  pointer-events: all;
+}
+
+.dual-range-input::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #b08230;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  pointer-events: all;
+}
+
 .ctrl-foot {
   display: flex;
   align-items: center;
@@ -65,20 +172,37 @@
 .reveal-btn {
   display: inline-flex;
   align-items: center;
-  padding: 6px 16px;
-  border: 1px solid rgba(102, 117, 72, 0.28);
-  border-radius: 999px;
-  background: rgba(255, 252, 247, 0.7);
-  color: var(--olive);
+  gap: 4px;
+  padding: 5px 14px;
+  border: 1px solid rgba(183, 134, 40, 0.35);
+  border-radius: 8px;
+  background: rgba(183, 134, 40, 0.08);
+  color: #8f6820;
   font: inherit;
-  font-size: 0.84rem;
+  font-size: 0.82rem;
   font-weight: 700;
   cursor: pointer;
-  transition: background 0.18s ease;
+  transition: background 0.18s ease, border-color 0.18s ease;
+}
+
+.reveal-btn::before {
+  content: '👁';
+  font-size: 0.78rem;
 }
 
 .reveal-btn:hover {
-  background: rgba(220, 230, 203, 0.45);
+  background: rgba(183, 134, 40, 0.16);
+  border-color: rgba(183, 134, 40, 0.5);
+}
+
+.reveal-btn.active {
+  background: rgba(183, 134, 40, 0.22);
+  border-color: rgba(183, 134, 40, 0.55);
+  color: #7a5718;
+}
+
+.reveal-btn.active::before {
+  content: '🙈';
 }
 
 .progress-label {

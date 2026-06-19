@@ -54,9 +54,15 @@ const STATUS_LABEL = { none: '−', learning: '학습중', memorized: '완료' }
 const STATUS_CLASS = { none: 's-none', learning: 's-learning', memorized: 's-memorized' };
 
 let quizStage = 0;
+let rangeFrom = 1;
+let rangeTo = 107;
 const revealed = new Set();
 let statuses = {};
 let fontScale = 1.0;
+
+function filteredItems() {
+  return catechism.filter(item => item.num >= rangeFrom && item.num <= rangeTo);
+}
 
 function loadState() {
   try {
@@ -105,18 +111,31 @@ function applyFont() {
 
 // ── 진행 현황 업데이트 ───────────────────────────
 function updateProgress() {
-  const done = catechism.filter(item => statuses[item.num] === 'memorized').length;
-  $progress.textContent = `완료 ${done} / ${catechism.length}`;
+  const items = filteredItems();
+  const done = items.filter(item => statuses[item.num] === 'memorized').length;
+  $progress.textContent = `완료 ${done} / ${items.length}`;
 }
 
 // ── 전체 렌더링 ──────────────────────────────────
+function isAllRevealed() {
+  const items = filteredItems();
+  return items.length > 0 && items.every(item => revealed.has(item.num));
+}
+
+function updateRevealBtn() {
+  const allRev = isAllRevealed();
+  $revealAll.textContent = allRev ? '전체 가리기' : '전체 공개';
+  $revealAll.classList.toggle('active', allRev);
+}
+
 function renderAll() {
   updateProgress();
 
   const staged = quizStage > 0;
   $revealAll.classList.toggle('hidden', !staged);
+  if (staged) updateRevealBtn();
 
-  $list.innerHTML = catechism
+  $list.innerHTML = filteredItems()
     .map(item => {
       const isRev = revealed.has(item.num);
       const st = statuses[item.num] || 'none';
@@ -181,9 +200,59 @@ document.querySelectorAll('.stage-btn').forEach(btn => {
 });
 
 $revealAll.addEventListener('click', () => {
-  catechism.forEach(item => revealed.add(item.num));
+  if (isAllRevealed()) {
+    filteredItems().forEach(item => revealed.delete(item.num));
+  } else {
+    filteredItems().forEach(item => revealed.add(item.num));
+  }
   renderAll();
 });
+
+const $rangeFrom    = document.getElementById('range-from');
+const $rangeTo      = document.getElementById('range-to');
+const $rangeFromVal = document.getElementById('range-from-val');
+const $rangeToVal   = document.getElementById('range-to-val');
+const $rangeFill    = document.getElementById('range-fill');
+
+const RANGE_MIN = 1;
+const RANGE_MAX = 107;
+
+function updateFill() {
+  const f = Number.parseInt($rangeFrom.value, 10);
+  const t = Number.parseInt($rangeTo.value, 10);
+  const span = RANGE_MAX - RANGE_MIN;
+  const leftPct  = ((f - RANGE_MIN) / span) * 100;
+  const rightPct = ((t - RANGE_MIN) / span) * 100;
+  $rangeFill.style.left  = leftPct + '%';
+  $rangeFill.style.width = (rightPct - leftPct) + '%';
+  $rangeFromVal.textContent = f;
+  $rangeToVal.textContent   = t;
+}
+
+function applyRange() {
+  rangeFrom = Number.parseInt($rangeFrom.value, 10);
+  rangeTo   = Number.parseInt($rangeTo.value, 10);
+  revealed.clear();
+  renderAll();
+}
+
+$rangeFrom.addEventListener('input', () => {
+  if (Number.parseInt($rangeFrom.value, 10) > Number.parseInt($rangeTo.value, 10)) {
+    $rangeTo.value = $rangeFrom.value;
+  }
+  updateFill();
+  applyRange();
+});
+
+$rangeTo.addEventListener('input', () => {
+  if (Number.parseInt($rangeTo.value, 10) < Number.parseInt($rangeFrom.value, 10)) {
+    $rangeFrom.value = $rangeTo.value;
+  }
+  updateFill();
+  applyRange();
+});
+
+updateFill();
 
 document.getElementById('btn-font-decrease').addEventListener('click', () => {
   fontScale = Math.max(0.8, Math.round((fontScale - 0.1) * 10) / 10);
