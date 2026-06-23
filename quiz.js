@@ -2,7 +2,7 @@
 const JOSA_RE =
   /^(.+?)(에서|에게|으로부터|으로|로부터|께서|이라도|이라고|이라는|이라|이랑|이며|이고|이나|까지|부터|보다|처럼|만큼|대로|마다|을|를|이|가|은|는|의|에|로|과|와|도|만|야|아)$/;
 
-function makeSegs(text, stage) {
+function makeSegs(text, stage, itemIdx = 0) {
   if (stage === 0) return [{ t: text, h: false }];
   if (stage === 3) return [{ t: text, h: true }];
 
@@ -22,7 +22,7 @@ function makeSegs(text, stage) {
       }
     } else {
       // stage 2: 2어절 단위 번갈아 마스킹
-      out.push({ t: tok, h: Math.floor(i / 2) % 2 === 0 });
+      out.push({ t: tok, h: Math.floor(i / 2) % 2 === itemIdx % 2 });
     }
   });
 
@@ -36,10 +36,10 @@ function esc(s) {
     .replace(/>/g, '&gt;');
 }
 
-function renderMasked(text, stage, isRevealed) {
+function renderMasked(text, stage, isRevealed, itemIdx = 0) {
   if (stage === 0 || isRevealed) return esc(text);
   if (stage === 3) return `<span class="qz-fullmask">${esc(text)}</span>`;
-  return makeSegs(text, stage)
+  return makeSegs(text, stage, itemIdx)
     .map(seg => (seg.h ? `<span class="qz-masked">${esc(seg.t)}</span>` : esc(seg.t)))
     .join('');
 }
@@ -136,10 +136,10 @@ function renderAll() {
   if (staged) updateRevealBtn();
 
   $list.innerHTML = filteredItems()
-    .map(item => {
+    .map((item, idx) => {
       const isRev = revealed.has(item.num);
       const st = statuses[item.num] || 'none';
-      const ansHtml = renderMasked(item.a, quizStage, isRev);
+      const ansHtml = renderMasked(item.a, quizStage, isRev, idx);
       const clickHint = staged ? ' qz-clickable' : '';
       const revLabel = isRev ? '가리기' : '보기';
 
@@ -213,6 +213,8 @@ const $rangeTo      = document.getElementById('range-to');
 const $rangeFromVal = document.getElementById('range-from-val');
 const $rangeToVal   = document.getElementById('range-to-val');
 const $rangeFill    = document.getElementById('range-fill');
+const $inpFrom      = document.getElementById('inp-from');
+const $inpTo        = document.getElementById('inp-to');
 
 const RANGE_MIN = 1;
 const RANGE_MAX = 107;
@@ -225,8 +227,8 @@ function updateFill() {
   const rightPct = ((t - RANGE_MIN) / span) * 100;
   $rangeFill.style.left  = leftPct + '%';
   $rangeFill.style.width = (rightPct - leftPct) + '%';
-  $rangeFromVal.textContent = f;
-  $rangeToVal.textContent   = t;
+  $inpFrom.value = f;
+  $inpTo.value   = t;
 }
 
 function applyRange() {
@@ -248,6 +250,22 @@ $rangeTo.addEventListener('input', () => {
   if (Number.parseInt($rangeTo.value, 10) < Number.parseInt($rangeFrom.value, 10)) {
     $rangeFrom.value = $rangeTo.value;
   }
+  updateFill();
+  applyRange();
+});
+
+$inpFrom.addEventListener('change', () => {
+  let v = Math.max(RANGE_MIN, Math.min(RANGE_MAX, Number.parseInt($inpFrom.value, 10) || RANGE_MIN));
+  if (v > Number.parseInt($rangeTo.value, 10)) v = Number.parseInt($rangeTo.value, 10);
+  $rangeFrom.value = v;
+  updateFill();
+  applyRange();
+});
+
+$inpTo.addEventListener('change', () => {
+  let v = Math.max(RANGE_MIN, Math.min(RANGE_MAX, Number.parseInt($inpTo.value, 10) || RANGE_MAX));
+  if (v < Number.parseInt($rangeFrom.value, 10)) v = Number.parseInt($rangeFrom.value, 10);
+  $rangeTo.value = v;
   updateFill();
   applyRange();
 });

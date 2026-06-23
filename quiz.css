@@ -82,6 +82,7 @@
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   transition: background 0.15s, border-color 0.15s;
+  cursor: text;
 }
 
 .dual-val-box.is-active {
@@ -89,11 +90,38 @@
   border-color: #b08230;
 }
 
-.dual-val-box::before {
-  content: '문 ';
+.dual-prefix {
   font-size: 0.78rem;
   color: var(--text-muted);
   margin-right: 2px;
+  pointer-events: none;
+  user-select: none;
+}
+
+.dual-val-input {
+  border: none;
+  background: transparent;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: inherit;
+  width: 3.5ch;
+  padding: 0;
+  margin: 0;
+  text-align: center;
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.dual-val-input::-webkit-inner-spin-button,
+.dual-val-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.dual-val-input:focus {
+  outline: none;
 }
 
 .dual-tilde {
