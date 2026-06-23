@@ -254,21 +254,27 @@ $rangeTo.addEventListener('input', () => {
   applyRange();
 });
 
-$inpFrom.addEventListener('change', () => {
+function applyInpFrom() {
   let v = Math.max(RANGE_MIN, Math.min(RANGE_MAX, Number.parseInt($inpFrom.value, 10) || RANGE_MIN));
   if (v > Number.parseInt($rangeTo.value, 10)) v = Number.parseInt($rangeTo.value, 10);
   $rangeFrom.value = v;
   updateFill();
   applyRange();
-});
+}
 
-$inpTo.addEventListener('change', () => {
+function applyInpTo() {
   let v = Math.max(RANGE_MIN, Math.min(RANGE_MAX, Number.parseInt($inpTo.value, 10) || RANGE_MAX));
   if (v < Number.parseInt($rangeFrom.value, 10)) v = Number.parseInt($rangeFrom.value, 10);
   $rangeTo.value = v;
   updateFill();
   applyRange();
-});
+}
+
+$inpFrom.addEventListener('blur', applyInpFrom);
+$inpFrom.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); $inpFrom.blur(); } });
+
+$inpTo.addEventListener('blur', applyInpTo);
+$inpTo.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); $inpTo.blur(); } });
 
 // 터치 시작 시 더 가까운 핸들을 앞으로 올려서 조작 가능하게 함
 document.querySelector('.dual-range-track-wrap').addEventListener('pointerdown', (e) => {

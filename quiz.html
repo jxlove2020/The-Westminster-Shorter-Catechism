@@ -8,6 +8,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="소요리문답 암송" />
     <title>소요리문답 암송</title>
+    <link rel="manifest" href="manifest.webmanifest" />
     <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png" />
     <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -55,9 +56,9 @@
         <div class="quiz-ctrl">
           <div class="range-row" role="group" aria-label="구간 선택">
             <div class="dual-range-vals">
-              <label class="dual-val-box" id="range-from-val" for="inp-from"><span class="dual-prefix">문</span><input type="number" id="inp-from" class="dual-val-input" min="1" max="107" value="1" inputmode="numeric" aria-label="시작 번호 직접 입력" /></label>
+              <label class="dual-val-box" id="range-from-val" for="inp-from"><span class="dual-prefix">문</span><input type="text" id="inp-from" class="dual-val-input" inputmode="numeric" pattern="[0-9]*" value="1" aria-label="시작 번호 직접 입력" /></label>
               <span class="dual-tilde">~</span>
-              <label class="dual-val-box" id="range-to-val" for="inp-to"><span class="dual-prefix">문</span><input type="number" id="inp-to" class="dual-val-input" min="1" max="107" value="107" inputmode="numeric" aria-label="끝 번호 직접 입력" /></label>
+              <label class="dual-val-box" id="range-to-val" for="inp-to"><span class="dual-prefix">문</span><input type="text" id="inp-to" class="dual-val-input" inputmode="numeric" pattern="[0-9]*" value="107" aria-label="끝 번호 직접 입력" /></label>
             </div>
             <div class="dual-range-track-wrap">
               <div class="dual-range-bg"></div>
