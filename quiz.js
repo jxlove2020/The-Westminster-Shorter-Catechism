@@ -2,7 +2,10 @@
 const JOSA_RE =
   /^(.+?)(에서|에게|으로부터|으로|로부터|께서|이라도|이라고|이라는|이라|이랑|이며|이고|이나|까지|부터|보다|처럼|만큼|대로|마다|을|를|이|가|은|는|의|에|로|과|와|도|만|야|아)$/;
 
-function makeSegs(text, stage, itemIdx = 0) {
+// 2단계용 랜덤 패턴: 문항 번호별 홀/짝 시작 오프셋 (새로고침마다 변경)
+const stage2Flips = {};
+
+function makeSegs(text, stage, itemNum = 0) {
   if (stage === 0) return [{ t: text, h: false }];
   if (stage === 3) return [{ t: text, h: true }];
 
@@ -21,8 +24,9 @@ function makeSegs(text, stage, itemIdx = 0) {
         out.push({ t: tok, h: false });
       }
     } else {
-      // stage 2: 2어절 단위 번갈아 마스킹
-      out.push({ t: tok, h: Math.floor(i / 2) % 2 === itemIdx % 2 });
+      // stage 2: 어절 홀짝 랜덤 마스킹 (새로고침마다 패턴 변경)
+      if (stage2Flips[itemNum] === undefined) stage2Flips[itemNum] = Math.round(Math.random());
+      out.push({ t: tok, h: i % 2 === stage2Flips[itemNum] });
     }
   });
 
@@ -139,7 +143,7 @@ function renderAll() {
     .map((item, idx) => {
       const isRev = revealed.has(item.num);
       const st = statuses[item.num] || 'none';
-      const ansHtml = renderMasked(item.a, quizStage, isRev, idx);
+      const ansHtml = renderMasked(item.a, quizStage, isRev, item.num);
       const clickHint = staged ? ' qz-clickable' : '';
       const revLabel = isRev ? '가리기' : '보기';
 
@@ -168,8 +172,12 @@ $list.addEventListener('click', e => {
 
   if (revEl && quizStage > 0) {
     const num = Number.parseInt(revEl.dataset.rev, 10);
-    if (revealed.has(num)) revealed.delete(num);
-    else revealed.add(num);
+    if (revealed.has(num)) {
+      revealed.delete(num);
+      delete stage2Flips[num];
+    } else {
+      revealed.add(num);
+    }
     renderAll();
     return;
   }
@@ -187,6 +195,7 @@ document.querySelectorAll('.stage-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     quizStage = Number.parseInt(btn.dataset.s, 10);
     revealed.clear();
+    if (quizStage === 2) Object.keys(stage2Flips).forEach(k => delete stage2Flips[k]);
     try {
       localStorage.setItem(KEY_STAGE, quizStage);
     } catch {
