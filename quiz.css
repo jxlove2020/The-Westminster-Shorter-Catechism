@@ -365,13 +365,11 @@
 
 /* 마스킹 스팬 */
 .qz-masked {
-  display: inline-block;
+  display: inline;
   background: #b8a88a;
   color: transparent;
   border-radius: 3px;
   user-select: none;
-  line-height: 1.1;
-  vertical-align: baseline;
   transition: background 0.15s ease, color 0.15s ease;
 }
 

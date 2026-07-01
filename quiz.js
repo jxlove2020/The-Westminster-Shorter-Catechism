@@ -42,7 +42,11 @@ function esc(s) {
 
 function renderMasked(text, stage, isRevealed, itemIdx = 0) {
   if (stage === 0 || isRevealed) return esc(text);
-  if (stage === 3) return `<span class="qz-fullmask">${esc(text)}</span>`;
+  if (stage === 3) {
+    return text.trim().split(' ')
+      .map((tok, i) => (i > 0 ? ' ' : '') + `<span class="qz-fullmask">${esc(tok)}</span>`)
+      .join('');
+  }
   return makeSegs(text, stage, itemIdx)
     .map(seg => (seg.h ? `<span class="qz-masked">${esc(seg.t)}</span>` : esc(seg.t)))
     .join('');
