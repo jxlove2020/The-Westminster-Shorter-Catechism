@@ -467,8 +467,8 @@ function setupMenu(btnId, popupId) {
     const willOpen = popup.classList.contains('hidden');
     if (willOpen) {
       const rect = btn.getBoundingClientRect();
-      popup.style.top = (rect.bottom + 8) + 'px';
-      popup.style.right = (window.innerWidth - rect.right) + 'px';
+      popup.style.top = rect.bottom + 8 + 'px';
+      popup.style.right = window.innerWidth - rect.right + 'px';
       popup.classList.remove('hidden');
       btn.classList.add('open');
       btn.setAttribute('aria-expanded', 'true');
@@ -478,7 +478,33 @@ function setupMenu(btnId, popupId) {
   });
 
   document.addEventListener('click', close);
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') close();
+  });
+}
+
+async function clearAppCache() {
+  if ('caches' in window) {
+    const cacheNames = await caches.keys();
+    await Promise.all(cacheNames.map(cacheName => caches.delete(cacheName)));
+  }
+
+  if ('serviceWorker' in navigator) {
+    const registrations = await navigator.serviceWorker.getRegistrations();
+    await Promise.all(registrations.map(registration => registration.unregister()));
+  }
+
+  const reloadUrl = new URL(window.location.href);
+  reloadUrl.searchParams.set('cacheReset', Date.now().toString());
+  window.location.replace(reloadUrl.toString());
+}
+
+const btnClearCache = document.getElementById('btn-clear-cache');
+if (btnClearCache) {
+  btnClearCache.addEventListener('click', async event => {
+    event.stopPropagation();
+    await clearAppCache();
+  });
 }
 
 setupMenu('menu-btn', 'menu-popup');
