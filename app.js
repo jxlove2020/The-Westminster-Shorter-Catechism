@@ -15,6 +15,8 @@ const btnPrevBottom = document.getElementById('btn-prev-bottom');
 const btnNextBottom = document.getElementById('btn-next-bottom');
 const navCounterBottom = document.getElementById('nav-counter-bottom');
 const btnReadAloud = document.getElementById('btn-read-aloud');
+const btnSpeechSettings = document.getElementById('btn-speech-settings');
+const speechSettingsPopup = document.getElementById('speech-settings-popup');
 const speechModeSelect = document.getElementById('speech-mode-select');
 const speechVoiceSelect = document.getElementById('speech-voice-select');
 const fontSizeDisplay = document.getElementById('font-size-display');
@@ -154,6 +156,12 @@ function populateSpeechVoiceOptions() {
   }
 }
 
+function closeSpeechSettings() {
+  if (!speechSettingsPopup) return;
+  speechSettingsPopup.classList.add('hidden');
+  if (btnSpeechSettings) btnSpeechSettings.setAttribute('aria-expanded', 'false');
+}
+
 function updateSpeechButtonState() {
   if (!btnReadAloud || !speechSupportEnabled) {
     return;
@@ -161,7 +169,8 @@ function updateSpeechButtonState() {
 
   const active = isSpeechPlaying || window.speechSynthesis.speaking || window.speechSynthesis.pending;
   btnReadAloud.classList.toggle('is-playing', active);
-  btnReadAloud.textContent = active ? '⏹ 정지' : '🔊 읽어주기';
+  btnReadAloud.textContent = active ? '⏹' : '🔊';
+  btnReadAloud.setAttribute('aria-label', active ? '정지' : '읽어주기');
   btnReadAloud.setAttribute('aria-pressed', String(active));
   btnReadAloud.disabled = false;
 }
@@ -355,6 +364,7 @@ function renderVerses(item) {
 function showDetail(index) {
   currentIndex = index;
   stopSpeech();
+  closeSpeechSettings();
   const item = catechism[index];
 
   dNum.textContent = `문 ${item.num}`;
@@ -696,6 +706,21 @@ if (speechSupportEnabled) {
 
 if (btnReadAloud) {
   btnReadAloud.addEventListener('click', speakCurrentItem);
+}
+
+if (btnSpeechSettings && speechSettingsPopup) {
+  btnSpeechSettings.addEventListener('click', e => {
+    e.stopPropagation();
+    const isOpen = !speechSettingsPopup.classList.contains('hidden');
+    if (isOpen) {
+      closeSpeechSettings();
+    } else {
+      speechSettingsPopup.classList.remove('hidden');
+      btnSpeechSettings.setAttribute('aria-expanded', 'true');
+    }
+  });
+  speechSettingsPopup.addEventListener('click', e => e.stopPropagation());
+  document.addEventListener('click', closeSpeechSettings);
 }
 
 if (speechVoiceSelect) {

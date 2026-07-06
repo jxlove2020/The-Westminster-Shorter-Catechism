@@ -90,19 +90,22 @@
         </div>
 
         <div class="detail-actions" role="group" aria-label="말씀 읽어주기">
-          <button id="btn-read-aloud" class="nav-btn ghost" type="button" aria-pressed="false">🔊 읽어주기</button>
-          <label class="speech-voice-control" for="speech-mode-select">
-            <span>읽을 내용</span>
-            <select id="speech-mode-select" class="speech-voice-select">
-              <option value="question-answer">질문 + 답</option>
-              <option value="answer">답만</option>
-              <option value="question-answer-verses">질문 + 답 + 참고구절</option>
-            </select>
-          </label>
-          <label class="speech-voice-control" for="speech-voice-select">
-            <span>음성</span>
-            <select id="speech-voice-select" class="speech-voice-select"></select>
-          </label>
+          <button id="btn-read-aloud" class="nav-btn speech-icon-btn" type="button" aria-pressed="false" aria-label="읽어주기">🔊</button>
+          <button id="btn-speech-settings" class="nav-btn ghost speech-icon-btn" type="button" aria-label="읽기 설정" aria-haspopup="true" aria-expanded="false">⚙️</button>
+          <div id="speech-settings-popup" class="speech-settings-popup hidden" role="dialog" aria-label="읽기 설정">
+            <label class="speech-voice-control" for="speech-mode-select">
+              <span>읽을 내용</span>
+              <select id="speech-mode-select" class="speech-voice-select">
+                <option value="question-answer">질문 + 답</option>
+                <option value="answer">답만</option>
+                <option value="question-answer-verses">질문 + 답 + 참고구절</option>
+              </select>
+            </label>
+            <label class="speech-voice-control" for="speech-voice-select">
+              <span>음성</span>
+              <select id="speech-voice-select" class="speech-voice-select"></select>
+            </label>
+          </div>
         </div>
 
         <div class="answer-box" role="region" aria-label="답">
