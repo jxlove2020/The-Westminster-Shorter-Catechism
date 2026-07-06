@@ -34,16 +34,15 @@ function makeSegs(text, stage, itemNum = 0) {
 }
 
 function esc(s) {
-  return String(s)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
 function renderMasked(text, stage, isRevealed, itemIdx = 0) {
   if (stage === 0 || isRevealed) return esc(text);
   if (stage === 3) {
-    return text.trim().split(' ')
+    return text
+      .trim()
+      .split(' ')
       .map((tok, i) => (i > 0 ? ' ' : '') + `<span class="qz-fullmask">${esc(tok)}</span>`)
       .join('');
   }
@@ -67,6 +66,12 @@ let rangeTo = 107;
 const revealed = new Set();
 let statuses = {};
 let fontScale = 1.0;
+let speechVoices = [];
+let selectedSpeechVoice = null;
+let selectedSpeechMode = 'question-answer';
+let isSpeechPlaying = false;
+let speechQueue = [];
+const speechSupportEnabled = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
 
 function filteredItems() {
   return catechism.filter(item => item.num >= rangeFrom && item.num <= rangeTo);
@@ -100,6 +105,9 @@ const $list = document.getElementById('quiz-list');
 const $progress = document.getElementById('progress');
 const $revealAll = document.getElementById('reveal-all');
 const $fontDisplay = document.getElementById('font-size-display');
+const $btnReadAloud = document.getElementById('btn-quiz-read-aloud');
+const $speechModeSelect = document.getElementById('quiz-speech-mode-select');
+const $speechVoiceSelect = document.getElementById('quiz-speech-voice-select');
 const dynStyle = document.createElement('style');
 document.head.appendChild(dynStyle);
 
@@ -107,7 +115,7 @@ document.head.appendChild(dynStyle);
 function applyFont() {
   dynStyle.textContent = `
     .qz-question { font-size: ${1.08 * fontScale}em; }
-    .qz-answer   { font-size: ${1.0  * fontScale}em; }
+    .qz-answer   { font-size: ${1.0 * fontScale}em; }
   `;
   if ($fontDisplay) $fontDisplay.textContent = `${Math.round(fontScale * 100)}%`;
   try {
@@ -122,6 +130,116 @@ function updateProgress() {
   const items = filteredItems();
   const done = items.filter(item => statuses[item.num] === 'memorized').length;
   $progress.textContent = `완료 ${done} / ${items.length}`;
+}
+
+function populateSpeechVoiceOptions() {
+  if (!speechSupportEnabled || !$speechVoiceSelect) return;
+
+  speechVoices = window.speechSynthesis.getVoices();
+  const koreanVoices = speechVoices.filter(voice => /ko|kr/i.test(voice.lang));
+  const candidates = koreanVoices.length > 0 ? koreanVoices : speechVoices;
+
+  $speechVoiceSelect.innerHTML = '';
+
+  const defaultOption = document.createElement('option');
+  defaultOption.value = '';
+  defaultOption.textContent = '브라우저 기본';
+  $speechVoiceSelect.appendChild(defaultOption);
+
+  candidates.forEach(voice => {
+    const option = document.createElement('option');
+    option.value = voice.name;
+    option.textContent = `${voice.name} (${voice.lang})`;
+    $speechVoiceSelect.appendChild(option);
+  });
+
+  if (selectedSpeechVoice) {
+    $speechVoiceSelect.value = selectedSpeechVoice.name;
+  } else {
+    const preferredVoice = candidates.find(voice => /ko|kr/i.test(voice.lang)) || candidates[0] || null;
+    if (preferredVoice) {
+      $speechVoiceSelect.value = preferredVoice.name;
+      selectedSpeechVoice = preferredVoice;
+    }
+  }
+}
+
+function updateSpeechButtonState() {
+  if (!$btnReadAloud || !speechSupportEnabled) return;
+
+  const active = isSpeechPlaying || window.speechSynthesis.speaking || window.speechSynthesis.pending;
+  $btnReadAloud.classList.toggle('is-playing', active);
+  $btnReadAloud.textContent = active ? '⏹ 정지' : '🔊 읽어주기';
+  $btnReadAloud.setAttribute('aria-pressed', String(active));
+  $btnReadAloud.disabled = false;
+}
+
+function stopSpeech() {
+  if (!speechSupportEnabled) return;
+  window.speechSynthesis.cancel();
+  speechQueue = [];
+  isSpeechPlaying = false;
+  updateSpeechButtonState();
+}
+
+function getSpeechText(item) {
+  const parts = [`문 ${item.num}`];
+
+  if (selectedSpeechMode === 'question-answer') {
+    parts.push(item.q);
+  }
+
+  if (selectedSpeechMode === 'answer' || selectedSpeechMode === 'question-answer') {
+    parts.push(item.a);
+  }
+
+  return parts.join('. ');
+}
+
+function speakQueue() {
+  if (!speechQueue.length) {
+    isSpeechPlaying = false;
+    updateSpeechButtonState();
+    return;
+  }
+
+  const text = speechQueue.shift();
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = selectedSpeechVoice?.lang || 'ko-KR';
+  utterance.voice = selectedSpeechVoice || null;
+  utterance.rate = 1;
+  utterance.pitch = 1;
+  utterance.volume = 1;
+  utterance.onstart = () => {
+    isSpeechPlaying = true;
+    updateSpeechButtonState();
+  };
+  utterance.onend = () => speakQueue();
+  utterance.onerror = () => {
+    isSpeechPlaying = false;
+    updateSpeechButtonState();
+  };
+
+  window.speechSynthesis.speak(utterance);
+}
+
+function readFilteredItems() {
+  if (!speechSupportEnabled) {
+    window.alert('이 브라우저는 읽어주기 기능을 지원하지 않습니다.');
+    return;
+  }
+
+  if (isSpeechPlaying || window.speechSynthesis.speaking || window.speechSynthesis.pending) {
+    stopSpeech();
+    return;
+  }
+
+  const items = filteredItems();
+  speechQueue = items.map(getSpeechText).filter(Boolean);
+  if (!speechQueue.length) return;
+
+  stopSpeech();
+  speakQueue();
 }
 
 // ── 전체 렌더링 ──────────────────────────────────
@@ -205,9 +323,9 @@ document.querySelectorAll('.stage-btn').forEach(btn => {
     } catch {
       /* ignore */
     }
-    document.querySelectorAll('.stage-btn').forEach(b =>
-      b.classList.toggle('on', Number.parseInt(b.dataset.s, 10) === quizStage),
-    );
+    document
+      .querySelectorAll('.stage-btn')
+      .forEach(b => b.classList.toggle('on', Number.parseInt(b.dataset.s, 10) === quizStage));
     renderAll();
   });
 });
@@ -221,13 +339,13 @@ $revealAll.addEventListener('click', () => {
   renderAll();
 });
 
-const $rangeFrom    = document.getElementById('range-from');
-const $rangeTo      = document.getElementById('range-to');
+const $rangeFrom = document.getElementById('range-from');
+const $rangeTo = document.getElementById('range-to');
 const $rangeFromVal = document.getElementById('range-from-val');
-const $rangeToVal   = document.getElementById('range-to-val');
-const $rangeFill    = document.getElementById('range-fill');
-const $inpFrom      = document.getElementById('inp-from');
-const $inpTo        = document.getElementById('inp-to');
+const $rangeToVal = document.getElementById('range-to-val');
+const $rangeFill = document.getElementById('range-fill');
+const $inpFrom = document.getElementById('inp-from');
+const $inpTo = document.getElementById('inp-to');
 
 const RANGE_MIN = 1;
 const RANGE_MAX = 107;
@@ -236,17 +354,17 @@ function updateFill() {
   const f = Number.parseInt($rangeFrom.value, 10);
   const t = Number.parseInt($rangeTo.value, 10);
   const span = RANGE_MAX - RANGE_MIN;
-  const leftPct  = ((f - RANGE_MIN) / span) * 100;
+  const leftPct = ((f - RANGE_MIN) / span) * 100;
   const rightPct = ((t - RANGE_MIN) / span) * 100;
-  $rangeFill.style.left  = leftPct + '%';
-  $rangeFill.style.width = (rightPct - leftPct) + '%';
+  $rangeFill.style.left = leftPct + '%';
+  $rangeFill.style.width = rightPct - leftPct + '%';
   $inpFrom.value = f;
-  $inpTo.value   = t;
+  $inpTo.value = t;
 }
 
 function applyRange() {
   rangeFrom = Number.parseInt($rangeFrom.value, 10);
-  rangeTo   = Number.parseInt($rangeTo.value, 10);
+  rangeTo = Number.parseInt($rangeTo.value, 10);
   revealed.clear();
   renderAll();
 }
@@ -284,28 +402,38 @@ function applyInpTo() {
 }
 
 $inpFrom.addEventListener('blur', applyInpFrom);
-$inpFrom.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); $inpFrom.blur(); } });
+$inpFrom.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    $inpFrom.blur();
+  }
+});
 
 $inpTo.addEventListener('blur', applyInpTo);
-$inpTo.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); $inpTo.blur(); } });
+$inpTo.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    $inpTo.blur();
+  }
+});
 
 // 터치 시작 시 더 가까운 핸들을 앞으로 올려서 조작 가능하게 함
-document.querySelector('.dual-range-track-wrap').addEventListener('pointerdown', (e) => {
+document.querySelector('.dual-range-track-wrap').addEventListener('pointerdown', e => {
   const rect = e.currentTarget.getBoundingClientRect();
   const pct = (e.clientX - rect.left) / rect.width;
   const span = RANGE_MAX - RANGE_MIN;
   const fromPct = (Number.parseInt($rangeFrom.value, 10) - RANGE_MIN) / span;
-  const toPct   = (Number.parseInt($rangeTo.value,   10) - RANGE_MIN) / span;
+  const toPct = (Number.parseInt($rangeTo.value, 10) - RANGE_MIN) / span;
   const fromIsCloser = Math.abs(pct - fromPct) <= Math.abs(pct - toPct);
   if (fromIsCloser) {
     $rangeFrom.style.zIndex = 5;
-    $rangeTo.style.zIndex   = 4;
+    $rangeTo.style.zIndex = 4;
     $rangeFrom.classList.add('is-active');
     $rangeTo.classList.remove('is-active');
     $rangeFromVal.classList.add('is-active');
     $rangeToVal.classList.remove('is-active');
   } else {
-    $rangeTo.style.zIndex   = 5;
+    $rangeTo.style.zIndex = 5;
     $rangeFrom.style.zIndex = 4;
     $rangeTo.classList.add('is-active');
     $rangeFrom.classList.remove('is-active');
@@ -347,8 +475,8 @@ menuBtn.addEventListener('click', e => {
   const willOpen = menuPopup.classList.contains('hidden');
   if (willOpen) {
     const rect = menuBtn.getBoundingClientRect();
-    menuPopup.style.top = (rect.bottom + 8) + 'px';
-    menuPopup.style.right = (window.innerWidth - rect.right) + 'px';
+    menuPopup.style.top = rect.bottom + 8 + 'px';
+    menuPopup.style.right = window.innerWidth - rect.right + 'px';
     menuPopup.classList.remove('hidden');
     menuBtn.classList.add('open');
     menuBtn.setAttribute('aria-expanded', 'true');
@@ -358,12 +486,35 @@ menuBtn.addEventListener('click', e => {
 });
 
 document.addEventListener('click', closeMenu);
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMenu(); });
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeMenu();
+});
+
+if ($btnReadAloud) {
+  $btnReadAloud.addEventListener('click', readFilteredItems);
+}
+
+if ($speechVoiceSelect) {
+  $speechVoiceSelect.addEventListener('change', () => {
+    selectedSpeechVoice = speechVoices.find(voice => voice.name === $speechVoiceSelect.value) || null;
+  });
+}
+
+if ($speechModeSelect) {
+  $speechModeSelect.addEventListener('change', event => {
+    selectedSpeechMode = event.target.value;
+  });
+}
+
+if (speechSupportEnabled) {
+  populateSpeechVoiceOptions();
+  window.speechSynthesis.onvoiceschanged = populateSpeechVoiceOptions;
+}
 
 // ── 초기화 ───────────────────────────────────────
 loadState();
-document.querySelectorAll('.stage-btn').forEach(b =>
-  b.classList.toggle('on', Number.parseInt(b.dataset.s, 10) === quizStage),
-);
+document
+  .querySelectorAll('.stage-btn')
+  .forEach(b => b.classList.toggle('on', Number.parseInt(b.dataset.s, 10) === quizStage));
 applyFont();
 renderAll();

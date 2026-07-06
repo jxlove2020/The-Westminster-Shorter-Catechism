@@ -17,7 +17,7 @@
       href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&family=Noto+Serif+KR:wght@600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="style.css?v=2" />
   </head>
   <body>
     <header>
@@ -87,6 +87,22 @@
         <div class="detail-header">
           <div id="d-num" class="detail-num" aria-hidden="true"></div>
           <div id="d-question" class="detail-question" role="heading" aria-level="2"></div>
+        </div>
+
+        <div class="detail-actions" role="group" aria-label="말씀 읽어주기">
+          <button id="btn-read-aloud" class="nav-btn ghost" type="button" aria-pressed="false">🔊 읽어주기</button>
+          <label class="speech-voice-control" for="speech-mode-select">
+            <span>읽을 내용</span>
+            <select id="speech-mode-select" class="speech-voice-select">
+              <option value="question-answer">질문 + 답</option>
+              <option value="answer">답만</option>
+              <option value="question-answer-verses">질문 + 답 + 참고구절</option>
+            </select>
+          </label>
+          <label class="speech-voice-control" for="speech-voice-select">
+            <span>음성</span>
+            <select id="speech-voice-select" class="speech-voice-select"></select>
+          </label>
         </div>
 
         <div class="answer-box" role="region" aria-label="답">

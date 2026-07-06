@@ -36,7 +36,7 @@ html {
 
 body {
   min-height: 100vh;
-  font-family: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  font-family: 'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
   color: var(--text);
   background:
     radial-gradient(circle at top left, rgba(183, 134, 40, 0.08), transparent 26%),
@@ -44,7 +44,7 @@ body {
 }
 
 body::before {
-  content: "";
+  content: '';
   position: fixed;
   inset: 0;
   pointer-events: none;
@@ -111,7 +111,9 @@ header {
   background: rgba(255, 252, 247, 0.88);
   box-shadow: var(--shadow-sm);
   cursor: pointer;
-  transition: background 0.18s ease, box-shadow 0.18s ease;
+  transition:
+    background 0.18s ease,
+    box-shadow 0.18s ease;
 }
 
 .header-menu-btn:hover {
@@ -125,7 +127,9 @@ header {
   height: 2px;
   background: var(--olive-deep);
   border-radius: 2px;
-  transition: transform 0.22s ease, opacity 0.22s ease;
+  transition:
+    transform 0.22s ease,
+    opacity 0.22s ease;
   transform-origin: center;
 }
 
@@ -161,7 +165,9 @@ header {
   font-size: 0.92rem;
   font-weight: 700;
   text-decoration: none;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
 }
 
 .header-menu-item:hover {
@@ -203,7 +209,7 @@ body.detail-mode .detail-only {
 }
 
 header h1 {
-  font-family: "Noto Serif KR", serif;
+  font-family: 'Noto Serif KR', serif;
   font-size: clamp(1.7rem, 3vw, 2.4rem);
   line-height: 1.22;
   letter-spacing: -0.04em;
@@ -394,6 +400,45 @@ main {
   padding: 12px var(--page-gutter) 54px;
 }
 
+.detail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 14px;
+}
+
+.detail-actions .nav-btn,
+.detail-actions .speech-voice-control {
+  min-width: 124px;
+  justify-content: center;
+}
+
+.speech-voice-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  min-height: 40px;
+  border: 1px solid rgba(102, 117, 72, 0.24);
+  border-radius: 999px;
+  background: rgba(255, 252, 247, 0.7);
+  color: var(--olive-deep);
+  font-size: 0.9rem;
+}
+
+.speech-voice-select {
+  border: none;
+  background: transparent;
+  color: var(--olive-deep);
+  font: inherit;
+  outline: none;
+  appearance: auto;
+  -webkit-appearance: auto;
+  cursor: pointer;
+  padding: 4px 0;
+}
+
 .detail-nav {
   position: sticky;
   top: 8px;
@@ -443,6 +488,11 @@ main {
   background: linear-gradient(135deg, var(--olive), #768556);
   color: #fffef9;
   box-shadow: 0 8px 20px rgba(79, 92, 56, 0.16);
+}
+
+.nav-btn.is-playing {
+  background: linear-gradient(135deg, #b45a2e, #d9783e);
+  box-shadow: 0 8px 20px rgba(180, 90, 46, 0.24);
 }
 
 .nav-btn:hover:not(:disabled),
@@ -525,7 +575,7 @@ main {
 
 .detail-question {
   padding-bottom: 16px;
-  font-family: "Noto Serif KR", serif;
+  font-family: 'Noto Serif KR', serif;
   font-size: 1.42rem;
   line-height: 1.58;
   letter-spacing: -0.03em;
@@ -600,7 +650,7 @@ main {
 .quiz-q {
   margin-bottom: 14px;
   color: var(--text);
-  font-family: "Noto Serif KR", serif;
+  font-family: 'Noto Serif KR', serif;
   font-size: 1rem;
   line-height: 1.72;
 }
@@ -666,7 +716,6 @@ main {
     padding-left: 0;
     padding-right: 0;
   }
-
 
   #detail-view > .detail-nav:not(.detail-nav-bottom) {
     display: none;

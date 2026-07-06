@@ -1,5 +1,5 @@
-const CACHE_NAME = 'catechism-shell-v19';
-const NETWORK_FIRST = ['./app.js', './data.js', './style.css'];
+const CACHE_NAME = 'catechism-shell-v20';
+const NETWORK_FIRST = ['./app.js', './data.js', './style.css', './quiz.css'];
 
 const CORE_ASSETS = [
   './',

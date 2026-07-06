@@ -17,8 +17,8 @@
       href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&family=Noto+Serif+KR:wght@600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="style.css" />
-    <link rel="stylesheet" href="quiz.css" />
+    <link rel="stylesheet" href="style.css?v=2" />
+    <link rel="stylesheet" href="quiz.css?v=2" />
   </head>
   <body>
     <header>
@@ -35,7 +35,13 @@
               <button id="btn-font-increase" class="nav-btn font-btn" aria-label="글자 크게">가+</button>
             </div>
             <div class="header-menu" id="header-menu-wrap">
-              <button class="header-menu-btn" id="menu-btn" aria-label="메뉴 열기" aria-expanded="false" aria-haspopup="true">
+              <button
+                class="header-menu-btn"
+                id="menu-btn"
+                aria-label="메뉴 열기"
+                aria-expanded="false"
+                aria-haspopup="true"
+              >
                 <span aria-hidden="true"></span>
                 <span aria-hidden="true"></span>
                 <span aria-hidden="true"></span>
@@ -56,15 +62,51 @@
         <div class="quiz-ctrl">
           <div class="range-row" role="group" aria-label="구간 선택">
             <div class="dual-range-vals">
-              <label class="dual-val-box" id="range-from-val" for="inp-from"><span class="dual-prefix">문</span><input type="text" id="inp-from" class="dual-val-input" inputmode="numeric" pattern="[0-9]*" value="1" aria-label="시작 번호 직접 입력" /></label>
+              <label class="dual-val-box" id="range-from-val" for="inp-from"
+                ><span class="dual-prefix">문</span
+                ><input
+                  type="text"
+                  id="inp-from"
+                  class="dual-val-input"
+                  inputmode="numeric"
+                  pattern="[0-9]*"
+                  value="1"
+                  aria-label="시작 번호 직접 입력"
+              /></label>
               <span class="dual-tilde">~</span>
-              <label class="dual-val-box" id="range-to-val" for="inp-to"><span class="dual-prefix">문</span><input type="text" id="inp-to" class="dual-val-input" inputmode="numeric" pattern="[0-9]*" value="107" aria-label="끝 번호 직접 입력" /></label>
+              <label class="dual-val-box" id="range-to-val" for="inp-to"
+                ><span class="dual-prefix">문</span
+                ><input
+                  type="text"
+                  id="inp-to"
+                  class="dual-val-input"
+                  inputmode="numeric"
+                  pattern="[0-9]*"
+                  value="107"
+                  aria-label="끝 번호 직접 입력"
+              /></label>
             </div>
             <div class="dual-range-track-wrap">
               <div class="dual-range-bg"></div>
               <div class="dual-range-fill" id="range-fill"></div>
-              <input type="range" id="range-from" class="dual-range-input" min="1" max="107" value="1" aria-label="시작 번호" />
-              <input type="range" id="range-to"   class="dual-range-input" min="1" max="107" value="107" aria-label="끝 번호" />
+              <input
+                type="range"
+                id="range-from"
+                class="dual-range-input"
+                min="1"
+                max="107"
+                value="1"
+                aria-label="시작 번호"
+              />
+              <input
+                type="range"
+                id="range-to"
+                class="dual-range-input"
+                min="1"
+                max="107"
+                value="107"
+                aria-label="끝 번호"
+              />
             </div>
           </div>
           <div class="stage-row" role="group" aria-label="암송 단계 선택">
@@ -72,6 +114,22 @@
             <button class="stage-btn" data-s="1" title="핵심 명사를 가립니다">1단계</button>
             <button class="stage-btn" data-s="2" title="절반씩 번갈아 가립니다">2단계</button>
             <button class="stage-btn" data-s="3" title="답을 전부 가립니다">3단계</button>
+          </div>
+          <div class="quiz-speech-controls" role="group" aria-label="암송 읽어주기">
+            <button id="btn-quiz-read-aloud" class="nav-btn ghost" type="button" aria-pressed="false">
+              🔊 읽어주기
+            </button>
+            <label class="speech-voice-control" for="quiz-speech-mode-select">
+              <span>읽을 내용</span>
+              <select id="quiz-speech-mode-select" class="speech-voice-select">
+                <option value="question-answer">질문 + 답</option>
+                <option value="answer">답만</option>
+              </select>
+            </label>
+            <label class="speech-voice-control" for="quiz-speech-voice-select">
+              <span>음성</span>
+              <select id="quiz-speech-voice-select" class="speech-voice-select"></select>
+            </label>
           </div>
           <div class="ctrl-foot">
             <button class="reveal-btn hidden" id="reveal-all" type="button">전체 공개</button>

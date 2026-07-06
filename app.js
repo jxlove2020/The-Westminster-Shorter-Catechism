@@ -14,6 +14,9 @@ const navCounter = document.getElementById('nav-counter');
 const btnPrevBottom = document.getElementById('btn-prev-bottom');
 const btnNextBottom = document.getElementById('btn-next-bottom');
 const navCounterBottom = document.getElementById('nav-counter-bottom');
+const btnReadAloud = document.getElementById('btn-read-aloud');
+const speechModeSelect = document.getElementById('speech-mode-select');
+const speechVoiceSelect = document.getElementById('speech-voice-select');
 const fontSizeDisplay = document.getElementById('font-size-display');
 // Add a style element to the head for dynamic font sizing
 const styleElement = document.createElement('style');
@@ -24,6 +27,11 @@ const DEFAULT_FONT_SIZE_SCALE = 1.0;
 let currentFontSizeScale = loadStoredFontSizeScale();
 
 let currentIndex = null;
+let speechVoices = [];
+let selectedSpeechVoice = null;
+let selectedSpeechMode = 'question-answer';
+let isSpeechPlaying = false;
+const speechSupportEnabled = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
 
 function loadStoredFontSizeScale() {
   try {
@@ -101,6 +109,148 @@ function matchesQuery(item, query) {
   return fields.some(field => normalizeSearchText(field).includes(query));
 }
 
+function populateSpeechVoiceOptions() {
+  if (!speechSupportEnabled || !speechVoiceSelect) {
+    return;
+  }
+
+  speechVoices = window.speechSynthesis.getVoices();
+  const koreanVoices = speechVoices.filter(voice => /ko|kr/i.test(voice.lang));
+  const candidates = koreanVoices.length > 0 ? koreanVoices : speechVoices;
+
+  speechVoiceSelect.innerHTML = '';
+
+  const defaultOption = document.createElement('option');
+  defaultOption.value = '';
+  defaultOption.textContent = '브라우저 기본';
+  speechVoiceSelect.appendChild(defaultOption);
+
+  candidates.forEach(voice => {
+    const option = document.createElement('option');
+    option.value = voice.name;
+    option.textContent = `${voice.name} (${voice.lang})`;
+    speechVoiceSelect.appendChild(option);
+  });
+
+  if (selectedSpeechVoice) {
+    speechVoiceSelect.value = selectedSpeechVoice.name;
+  } else {
+    const preferredVoice = candidates.find(voice => /ko|kr/i.test(voice.lang)) || candidates[0] || null;
+    if (preferredVoice) {
+      speechVoiceSelect.value = preferredVoice.name;
+      selectedSpeechVoice = preferredVoice;
+    }
+  }
+}
+
+function updateSpeechButtonState() {
+  if (!btnReadAloud || !speechSupportEnabled) {
+    return;
+  }
+
+  const active = isSpeechPlaying || window.speechSynthesis.speaking || window.speechSynthesis.pending;
+  btnReadAloud.classList.toggle('is-playing', active);
+  btnReadAloud.textContent = active ? '⏹ 정지' : '🔊 읽어주기';
+  btnReadAloud.setAttribute('aria-pressed', String(active));
+  btnReadAloud.disabled = false;
+}
+
+function stopSpeech() {
+  if (!speechSupportEnabled) {
+    return;
+  }
+
+  window.speechSynthesis.cancel();
+  isSpeechPlaying = false;
+  updateSpeechButtonState();
+}
+
+function getCurrentSpeechText() {
+  if (currentIndex === null) {
+    return '';
+  }
+
+  const item = catechism[currentIndex];
+  if (!item) {
+    return '';
+  }
+
+  const parts = [];
+  parts.push(`문 ${item.num}`);
+
+  if (selectedSpeechMode === 'question-answer' || selectedSpeechMode === 'question-answer-verses') {
+    parts.push(safeQuestion(item));
+  }
+
+  if (
+    selectedSpeechMode === 'answer' ||
+    selectedSpeechMode === 'question-answer' ||
+    selectedSpeechMode === 'question-answer-verses'
+  ) {
+    parts.push(safeAnswer(item));
+  }
+
+  if (selectedSpeechMode === 'question-answer-verses') {
+    const verses = Array.isArray(item.verses) ? item.verses : [];
+    verses.forEach(verse => {
+      if (!looksBroken(verse.text)) {
+        parts.push(`${verse.ref}. ${verse.text}`);
+      }
+    });
+
+    if (typeof item.refs === 'string' && item.refs.trim()) {
+      parts.push(item.refs);
+    }
+  }
+
+  return parts.join('. ');
+}
+
+function speakCurrentItem() {
+  if (!speechSupportEnabled) {
+    window.alert('이 브라우저는 읽어주기 기능을 지원하지 않습니다.');
+    return;
+  }
+
+  if (currentIndex === null) {
+    return;
+  }
+
+  if (isSpeechPlaying || window.speechSynthesis.speaking || window.speechSynthesis.pending) {
+    stopSpeech();
+    return;
+  }
+
+  const speechText = getCurrentSpeechText();
+  if (!speechText.trim()) {
+    return;
+  }
+
+  stopSpeech();
+
+  const utterance = new SpeechSynthesisUtterance(speechText);
+  utterance.lang = selectedSpeechVoice?.lang || 'ko-KR';
+  utterance.voice = selectedSpeechVoice || null;
+  utterance.rate = 1;
+  utterance.pitch = 1;
+  utterance.volume = 1;
+  utterance.onstart = () => {
+    isSpeechPlaying = true;
+    updateSpeechButtonState();
+  };
+  utterance.onend = () => {
+    isSpeechPlaying = false;
+    updateSpeechButtonState();
+  };
+  utterance.onerror = () => {
+    isSpeechPlaying = false;
+    updateSpeechButtonState();
+  };
+
+  window.speechSynthesis.speak(utterance);
+  updateSpeechButtonState();
+}
+
 function renderList(query = '') {
   const normalizedQuery = normalizeSearchText(query);
   const filtered = normalizedQuery
@@ -176,6 +326,7 @@ function renderVerses(item) {
 
 function showDetail(index) {
   currentIndex = index;
+  stopSpeech();
   const item = catechism[index];
 
   dNum.textContent = `문 ${item.num}`;
@@ -204,6 +355,7 @@ function showDetail(index) {
 
 function showList() {
   currentIndex = null;
+  stopSpeech();
   detailView.classList.add('hidden');
   listView.classList.remove('hidden');
   pageBody.classList.remove('detail-mode');
@@ -504,6 +656,27 @@ if (btnClearCache) {
   btnClearCache.addEventListener('click', async event => {
     event.stopPropagation();
     await clearAppCache();
+  });
+}
+
+if (speechSupportEnabled) {
+  populateSpeechVoiceOptions();
+  window.speechSynthesis.onvoiceschanged = populateSpeechVoiceOptions;
+}
+
+if (btnReadAloud) {
+  btnReadAloud.addEventListener('click', speakCurrentItem);
+}
+
+if (speechVoiceSelect) {
+  speechVoiceSelect.addEventListener('change', () => {
+    selectedSpeechVoice = speechVoices.find(voice => voice.name === speechVoiceSelect.value) || null;
+  });
+}
+
+if (speechModeSelect) {
+  speechModeSelect.addEventListener('change', event => {
+    selectedSpeechMode = event.target.value;
   });
 }
 
