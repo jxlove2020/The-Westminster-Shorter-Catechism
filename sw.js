@@ -1,4 +1,4 @@
-const CACHE_NAME = 'catechism-shell-v20';
+const CACHE_NAME = 'catechism-shell-v21';
 const NETWORK_FIRST = ['./app.js', './data.js', './style.css', './quiz.css'];
 
 const CORE_ASSETS = [
@@ -70,7 +70,7 @@ self.addEventListener('fetch', event => {
           caches.open(CACHE_NAME).then(cache => cache.put(request, responseClone));
           return response;
         })
-        .catch(() => caches.match(request)),
+        .catch(() => caches.match(request) || caches.match('./index.html')),
     );
     return;
   }
@@ -79,11 +79,13 @@ self.addEventListener('fetch', event => {
     caches.match(request).then(
       cached =>
         cached ||
-        fetch(request).then(response => {
-          const responseClone = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(request, responseClone));
-          return response;
-        }),
+        fetch(request)
+          .then(response => {
+            const responseClone = response.clone();
+            caches.open(CACHE_NAME).then(cache => cache.put(request, responseClone));
+            return response;
+          })
+          .catch(() => caches.match('./index.html')),
     ),
   );
 });
