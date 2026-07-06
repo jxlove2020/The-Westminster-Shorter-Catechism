@@ -133,10 +133,22 @@ function updateProgress() {
 }
 
 function populateSpeechVoiceOptions() {
-  if (!speechSupportEnabled || !$speechVoiceSelect) return;
+  console.log('[Quiz Speech] populateSpeechVoiceOptions called', {
+    speechSupportEnabled,
+    $speechVoiceSelect: !!$speechVoiceSelect,
+  });
+
+  if (!speechSupportEnabled || !$speechVoiceSelect) {
+    console.log('[Quiz Speech] Speech support disabled or no select element');
+    return;
+  }
 
   speechVoices = window.speechSynthesis.getVoices();
+  console.log('[Quiz Speech] Available voices:', speechVoices.length);
+
   const koreanVoices = speechVoices.filter(voice => /ko|kr/i.test(voice.lang));
+  console.log('[Quiz Speech] Korean voices:', koreanVoices.length);
+
   const candidates = koreanVoices.length > 0 ? koreanVoices : speechVoices;
 
   $speechVoiceSelect.innerHTML = '';

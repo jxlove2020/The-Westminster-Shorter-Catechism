@@ -31,6 +31,7 @@ let speechVoices = [];
 let selectedSpeechVoice = null;
 let selectedSpeechMode = 'question-answer';
 let isSpeechPlaying = false;
+let speechKeepAliveInterval = null;
 const speechSupportEnabled = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
 
 function loadStoredFontSizeScale() {
@@ -110,12 +111,22 @@ function matchesQuery(item, query) {
 }
 
 function populateSpeechVoiceOptions() {
+  console.log('[Speech] populateSpeechVoiceOptions called', {
+    speechSupportEnabled,
+    speechVoiceSelect: !!speechVoiceSelect,
+  });
+
   if (!speechSupportEnabled || !speechVoiceSelect) {
+    console.log('[Speech] Speech support disabled or no select element');
     return;
   }
 
   speechVoices = window.speechSynthesis.getVoices();
+  console.log('[Speech] Available voices:', speechVoices.length);
+
   const koreanVoices = speechVoices.filter(voice => /ko|kr/i.test(voice.lang));
+  console.log('[Speech] Korean voices:', koreanVoices.length);
+
   const candidates = koreanVoices.length > 0 ? koreanVoices : speechVoices;
 
   speechVoiceSelect.innerHTML = '';
@@ -160,6 +171,8 @@ function stopSpeech() {
     return;
   }
 
+  clearInterval(speechKeepAliveInterval);
+  speechKeepAliveInterval = null;
   window.speechSynthesis.cancel();
   isSpeechPlaying = false;
   updateSpeechButtonState();
@@ -234,20 +247,35 @@ function speakCurrentItem() {
   utterance.rate = 1;
   utterance.pitch = 1;
   utterance.volume = 1;
-  utterance.onstart = () => {
-    isSpeechPlaying = true;
-    updateSpeechButtonState();
-  };
-  utterance.onend = () => {
-    isSpeechPlaying = false;
-    updateSpeechButtonState();
-  };
-  utterance.onerror = () => {
+
+  const onFinish = () => {
+    clearInterval(speechKeepAliveInterval);
+    speechKeepAliveInterval = null;
     isSpeechPlaying = false;
     updateSpeechButtonState();
   };
 
+  utterance.onstart = () => {
+    isSpeechPlaying = true;
+    updateSpeechButtonState();
+  };
+  utterance.onend = onFinish;
+  utterance.onerror = onFinish;
+
+  isSpeechPlaying = true;
   window.speechSynthesis.speak(utterance);
+
+  // Chrome 버그 우회: 긴 텍스트가 ~15초 후 자동으로 멈추는 문제 방지
+  speechKeepAliveInterval = setInterval(() => {
+    if (!window.speechSynthesis.speaking) {
+      clearInterval(speechKeepAliveInterval);
+      speechKeepAliveInterval = null;
+      return;
+    }
+    window.speechSynthesis.pause();
+    window.speechSynthesis.resume();
+  }, 10000);
+
   updateSpeechButtonState();
 }
 
@@ -661,7 +689,9 @@ if (btnClearCache) {
 
 if (speechSupportEnabled) {
   populateSpeechVoiceOptions();
-  window.speechSynthesis.onvoiceschanged = populateSpeechVoiceOptions;
+  window.speechSynthesis.addEventListener('voiceschanged', populateSpeechVoiceOptions);
+  // GitHub Pages 등 HTTPS 환경에서 voiceschanged가 발화되지 않는 경우 대비
+  setTimeout(populateSpeechVoiceOptions, 500);
 }
 
 if (btnReadAloud) {
