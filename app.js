@@ -44,7 +44,7 @@ const GOOGLE_TTS_VOICES = [
   { name: 'ko-KR-Neural2-A', label: 'Neural2-A (여성)' },
   { name: 'ko-KR-Neural2-B', label: 'Neural2-B (여성)' },
   { name: 'ko-KR-Neural2-C', label: 'Neural2-C (남성)' },
-  { name: 'ko-KR-Neural2-D', label: 'Neural2-D (남성)' },
+  { name: 'ko-KR-Neural2-D', label: 'Neural2-D (여성)' },
 ];
 
 function loadStoredFontSizeScale() {
@@ -131,7 +131,7 @@ function populateSpeechVoiceOptions() {
   GOOGLE_TTS_VOICES.forEach(voice => {
     const option = document.createElement('option');
     option.value = GOOGLE_TTS_VOICE_PREFIX + voice.name;
-    option.textContent = '✦ Google ' + voice.label;
+    option.textContent = voice.label;
     speechVoiceSelect.appendChild(option);
   });
 
@@ -141,21 +141,10 @@ function populateSpeechVoiceOptions() {
     sep.textContent = '─────────────';
     speechVoiceSelect.appendChild(sep);
 
-    speechVoices = window.speechSynthesis.getVoices();
-    const koreanVoices = speechVoices.filter(voice => /ko|kr/i.test(voice.lang));
-    const candidates = koreanVoices.length > 0 ? koreanVoices : speechVoices;
-
-    const defaultOption = document.createElement('option');
-    defaultOption.value = '';
-    defaultOption.textContent = '브라우저 기본';
-    speechVoiceSelect.appendChild(defaultOption);
-
-    candidates.forEach(voice => {
-      const option = document.createElement('option');
-      option.value = voice.name;
-      option.textContent = `${voice.name} (${voice.lang})`;
-      speechVoiceSelect.appendChild(option);
-    });
+    const browserOption = document.createElement('option');
+    browserOption.value = '';
+    browserOption.textContent = '브라우저 기본';
+    speechVoiceSelect.appendChild(browserOption);
   }
 
   if (selectedVoiceValue) {
@@ -165,7 +154,6 @@ function populateSpeechVoiceOptions() {
     speechVoiceSelect.value = GOOGLE_TTS_VOICE_PREFIX + GOOGLE_TTS_VOICES[0].name;
     selectedVoiceValue = speechVoiceSelect.value;
   }
-  selectedSpeechVoice = speechVoices.find(v => v.name === speechVoiceSelect.value) || null;
 }
 
 function closeSpeechSettings() {
@@ -285,16 +273,17 @@ function speakWithBrowserTts(speechText) {
   isSpeechPlaying = true;
   window.speechSynthesis.speak(utterance);
 
-  // Chrome 버그 우회: 긴 텍스트가 ~15초 후 자동으로 멈추는 문제 방지
+  // Chrome 버그 우회: ~15초 후 자동으로 멈추는 문제 방지 + 예상치 못한 중단 감지
   speechKeepAliveInterval = setInterval(() => {
     if (!window.speechSynthesis.speaking) {
       clearInterval(speechKeepAliveInterval);
       speechKeepAliveInterval = null;
+      if (isSpeechPlaying) onFinish();
       return;
     }
     window.speechSynthesis.pause();
     window.speechSynthesis.resume();
-  }, 10000);
+  }, 5000);
 
   updateSpeechButtonState();
 }
@@ -807,10 +796,6 @@ if (btnClearCache) {
 }
 
 populateSpeechVoiceOptions();
-if (speechSupportEnabled) {
-  window.speechSynthesis.addEventListener('voiceschanged', populateSpeechVoiceOptions);
-  setTimeout(populateSpeechVoiceOptions, 500);
-}
 
 if (btnReadAloud) {
   btnReadAloud.addEventListener('click', speakCurrentItem);
