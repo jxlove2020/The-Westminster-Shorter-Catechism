@@ -331,6 +331,10 @@ async function speakQueueItemGoogle(text, voiceName) {
   }
 }
 
+function splitSentences(text) {
+  return text.replace(/([.?!])\s+/g, '$1\n').split('\n').map(s => s.trim()).filter(Boolean);
+}
+
 function speakQueueItemBrowser(text) {
   if (!speechSupportEnabled) {
     isSpeechPlaying = false;
@@ -338,37 +342,28 @@ function speakQueueItemBrowser(text) {
     return;
   }
 
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = selectedSpeechVoice?.lang || 'ko-KR';
-  utterance.voice = selectedSpeechVoice || null;
-  utterance.rate = 1;
-  utterance.pitch = 1;
-  utterance.volume = 1;
-  utterance.onend = () => {
-    clearInterval(speechKeepAliveInterval);
-    speechKeepAliveInterval = null;
-    speakQueue();
-  };
-  utterance.onerror = () => {
-    clearInterval(speechKeepAliveInterval);
-    speechKeepAliveInterval = null;
-    isSpeechPlaying = false;
-    updateSpeechButtonState();
-  };
+  const chunks = splitSentences(text);
+  if (!chunks.length) { speakQueue(); return; }
 
-  window.speechSynthesis.speak(utterance);
+  let chunkIdx = 0;
 
-  // Chrome 버그 우회: ~15초 후 자동으로 멈추는 문제 방지 + 예상치 못한 중단 감지
-  speechKeepAliveInterval = setInterval(() => {
-    if (!window.speechSynthesis.speaking) {
-      clearInterval(speechKeepAliveInterval);
-      speechKeepAliveInterval = null;
-      if (isSpeechPlaying) speakQueue();
-      return;
-    }
-    window.speechSynthesis.pause();
-    window.speechSynthesis.resume();
-  }, 5000);
+  function speakNextChunk() {
+    if (chunkIdx >= chunks.length) { speakQueue(); return; }
+    const utterance = new SpeechSynthesisUtterance(chunks[chunkIdx++]);
+    utterance.lang = selectedSpeechVoice?.lang || 'ko-KR';
+    utterance.voice = selectedSpeechVoice || null;
+    utterance.rate = 1;
+    utterance.pitch = 1;
+    utterance.volume = 1;
+    utterance.onend = speakNextChunk;
+    utterance.onerror = () => {
+      isSpeechPlaying = false;
+      updateSpeechButtonState();
+    };
+    window.speechSynthesis.speak(utterance);
+  }
+
+  speakNextChunk();
 }
 
 function readFilteredItems() {
@@ -653,6 +648,7 @@ if ($btnRepeat) {
     isRepeatOn = !isRepeatOn;
     $btnRepeat.classList.toggle('is-repeat-on', isRepeatOn);
     $btnRepeat.setAttribute('aria-pressed', String(isRepeatOn));
+    $btnRepeat.title = isRepeatOn ? '반복 재생 켜짐' : '반복 재생';
   });
 }
 

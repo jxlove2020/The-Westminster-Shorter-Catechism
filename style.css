@@ -416,10 +416,10 @@ main {
 }
 
 .is-repeat-on {
-  background: linear-gradient(135deg, var(--olive), #768556);
-  color: #fffef9;
-  border-color: transparent;
-  box-shadow: 0 4px 12px rgba(79, 92, 56, 0.3);
+  background: linear-gradient(135deg, var(--olive), #768556) !important;
+  color: #fffef9 !important;
+  border-color: transparent !important;
+  box-shadow: 0 4px 12px rgba(79, 92, 56, 0.3) !important;
 }
 
 .speech-settings-popup {

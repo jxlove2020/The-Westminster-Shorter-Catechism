@@ -245,47 +245,40 @@ function getCurrentSpeechText() {
   return parts.join('. ');
 }
 
+function splitSentences(text) {
+  return text.replace(/([.?!])\s+/g, '$1\n').split('\n').map(s => s.trim()).filter(Boolean);
+}
+
 function speakWithBrowserTts(speechText) {
   stopSpeech();
 
-  const utterance = new SpeechSynthesisUtterance(speechText);
-  utterance.lang = selectedSpeechVoice?.lang || 'ko-KR';
-  utterance.voice = selectedSpeechVoice || null;
-  utterance.rate = 1;
-  utterance.pitch = 1;
-  utterance.volume = 1;
+  const chunks = splitSentences(speechText);
+  if (!chunks.length) return;
+
+  let chunkIdx = 0;
 
   const onFinish = () => {
-    clearInterval(speechKeepAliveInterval);
-    speechKeepAliveInterval = null;
     isSpeechPlaying = false;
     updateSpeechButtonState();
     if (isRepeatOn) _repeatTimeout = setTimeout(speakCurrentItem, 2000);
   };
 
-  utterance.onstart = () => {
-    isSpeechPlaying = true;
-    updateSpeechButtonState();
-  };
-  utterance.onend = onFinish;
-  utterance.onerror = onFinish;
+  function speakNextChunk() {
+    if (chunkIdx >= chunks.length) { onFinish(); return; }
+    const utterance = new SpeechSynthesisUtterance(chunks[chunkIdx++]);
+    utterance.lang = selectedSpeechVoice?.lang || 'ko-KR';
+    utterance.voice = selectedSpeechVoice || null;
+    utterance.rate = 1;
+    utterance.pitch = 1;
+    utterance.volume = 1;
+    utterance.onend = speakNextChunk;
+    utterance.onerror = onFinish;
+    window.speechSynthesis.speak(utterance);
+  }
 
   isSpeechPlaying = true;
-  window.speechSynthesis.speak(utterance);
-
-  // Chrome 버그 우회: ~15초 후 자동으로 멈추는 문제 방지 + 예상치 못한 중단 감지
-  speechKeepAliveInterval = setInterval(() => {
-    if (!window.speechSynthesis.speaking) {
-      clearInterval(speechKeepAliveInterval);
-      speechKeepAliveInterval = null;
-      if (isSpeechPlaying) onFinish();
-      return;
-    }
-    window.speechSynthesis.pause();
-    window.speechSynthesis.resume();
-  }, 5000);
-
   updateSpeechButtonState();
+  speakNextChunk();
 }
 
 async function speakWithGoogleTts(speechText, voiceName) {
@@ -807,6 +800,7 @@ if (btnRepeat) {
     isRepeatOn = !isRepeatOn;
     btnRepeat.classList.toggle('is-repeat-on', isRepeatOn);
     btnRepeat.setAttribute('aria-pressed', String(isRepeatOn));
+    btnRepeat.title = isRepeatOn ? '반복 재생 켜짐' : '반복 재생';
   });
 }
 
