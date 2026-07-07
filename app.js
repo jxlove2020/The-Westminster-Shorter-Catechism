@@ -36,6 +36,8 @@ let selectedSpeechMode = 'question-answer';
 let isSpeechPlaying = false;
 let speechKeepAliveInterval = null;
 let currentGoogleAudio = null;
+let isRepeatOn = false;
+let _repeatTimeout = null;
 const speechSupportEnabled = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
 const GOOGLE_TTS_VOICE_PREFIX = 'google:';
 const GOOGLE_TTS_VOICES = [
@@ -184,7 +186,19 @@ function updateSpeechButtonState() {
   btnReadAloud.disabled = false;
 }
 
+let _toastTimer = null;
+function showToast(message, durationMs = 4000) {
+  const el = document.getElementById('toast');
+  if (!el) return;
+  el.textContent = message;
+  el.classList.remove('hidden');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => el.classList.add('hidden'), durationMs);
+}
+
 function stopSpeech() {
+  clearTimeout(_repeatTimeout);
+  _repeatTimeout = null;
   clearInterval(speechKeepAliveInterval);
   speechKeepAliveInterval = null;
 
@@ -258,6 +272,7 @@ function speakWithBrowserTts(speechText) {
     speechKeepAliveInterval = null;
     isSpeechPlaying = false;
     updateSpeechButtonState();
+    if (isRepeatOn) _repeatTimeout = setTimeout(speakCurrentItem, 2000);
   };
 
   utterance.onstart = () => {
@@ -327,6 +342,7 @@ async function speakWithGoogleTts(speechText, voiceName) {
       currentGoogleAudio = null;
       isSpeechPlaying = false;
       updateSpeechButtonState();
+      if (isRepeatOn) _repeatTimeout = setTimeout(speakCurrentItem, 2000);
     };
     audio.onerror = () => {
       URL.revokeObjectURL(url);
@@ -342,8 +358,17 @@ async function speakWithGoogleTts(speechText, voiceName) {
     console.warn('[Google TTS] 실패, 브라우저 TTS로 대체:', error.message);
     currentGoogleAudio = null;
     isSpeechPlaying = false;
-    if (speechSupportEnabled) speakWithBrowserTts(speechText);
-    else updateSpeechButtonState();
+    const isQuota = /429|403/.test(error.message);
+    const msg = isQuota
+      ? 'Google 음성 사용량 초과\n브라우저 기본 음성으로 계속 읽습니다'
+      : 'Google 음성 연결 실패\n브라우저 기본 음성으로 계속 읽습니다';
+    if (speechSupportEnabled) {
+      showToast(msg);
+      speakWithBrowserTts(speechText);
+    } else {
+      showToast('음성 재생을 사용할 수 없습니다');
+      updateSpeechButtonState();
+    }
   }
 }
 
@@ -789,6 +814,15 @@ if (speechSupportEnabled) {
 
 if (btnReadAloud) {
   btnReadAloud.addEventListener('click', speakCurrentItem);
+}
+
+const btnRepeat = document.getElementById('btn-repeat');
+if (btnRepeat) {
+  btnRepeat.addEventListener('click', () => {
+    isRepeatOn = !isRepeatOn;
+    btnRepeat.classList.toggle('is-repeat-on', isRepeatOn);
+    btnRepeat.setAttribute('aria-pressed', String(isRepeatOn));
+  });
 }
 
 if (btnSpeechSettings && speechSettingsPopup) {

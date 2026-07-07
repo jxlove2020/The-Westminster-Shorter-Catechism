@@ -60,6 +60,14 @@ const STATUS_NEXT = { none: 'learning', learning: 'memorized', memorized: 'none'
 const STATUS_LABEL = { none: '−', learning: '학습중', memorized: '완료' };
 const STATUS_CLASS = { none: 's-none', learning: 's-learning', memorized: 's-memorized' };
 
+const GOOGLE_TTS_VOICE_PREFIX = 'google:';
+const GOOGLE_TTS_VOICES = [
+  { name: 'ko-KR-Neural2-A', label: 'Neural2-A (여성)' },
+  { name: 'ko-KR-Neural2-B', label: 'Neural2-B (남성)' },
+  { name: 'ko-KR-Neural2-C', label: 'Neural2-C (여성)' },
+  { name: 'ko-KR-Neural2-D', label: 'Neural2-D (남성)' },
+];
+
 let quizStage = 0;
 let rangeFrom = 1;
 let rangeTo = 107;
@@ -68,10 +76,14 @@ let statuses = {};
 let fontScale = 1.0;
 let speechVoices = [];
 let selectedSpeechVoice = null;
+let selectedVoiceValue = '';
 let selectedSpeechMode = 'question-answer';
 let isSpeechPlaying = false;
 let speechQueue = [];
 let speechKeepAliveInterval = null;
+let currentGoogleAudio = null;
+let isRepeatOn = false;
+let _repeatTimeout = null;
 const speechSupportEnabled = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
 
 function filteredItems() {
@@ -136,35 +148,48 @@ function updateProgress() {
 }
 
 function populateSpeechVoiceOptions() {
-  if (!speechSupportEnabled || !$speechVoiceSelect) return;
-
-  speechVoices = window.speechSynthesis.getVoices();
-  const koreanVoices = speechVoices.filter(voice => /ko|kr/i.test(voice.lang));
-  const candidates = koreanVoices.length > 0 ? koreanVoices : speechVoices;
+  if (!$speechVoiceSelect) return;
 
   $speechVoiceSelect.innerHTML = '';
 
-  const defaultOption = document.createElement('option');
-  defaultOption.value = '';
-  defaultOption.textContent = '브라우저 기본';
-  $speechVoiceSelect.appendChild(defaultOption);
-
-  candidates.forEach(voice => {
+  GOOGLE_TTS_VOICES.forEach(voice => {
     const option = document.createElement('option');
-    option.value = voice.name;
-    option.textContent = `${voice.name} (${voice.lang})`;
+    option.value = GOOGLE_TTS_VOICE_PREFIX + voice.name;
+    option.textContent = '✦ Google ' + voice.label;
     $speechVoiceSelect.appendChild(option);
   });
 
-  if (selectedSpeechVoice) {
-    $speechVoiceSelect.value = selectedSpeechVoice.name;
-  } else {
-    const preferredVoice = candidates.find(voice => /ko|kr/i.test(voice.lang)) || candidates[0] || null;
-    if (preferredVoice) {
-      $speechVoiceSelect.value = preferredVoice.name;
-      selectedSpeechVoice = preferredVoice;
-    }
+  if (speechSupportEnabled) {
+    const sep = document.createElement('option');
+    sep.disabled = true;
+    sep.textContent = '─────────────';
+    $speechVoiceSelect.appendChild(sep);
+
+    speechVoices = window.speechSynthesis.getVoices();
+    const koreanVoices = speechVoices.filter(voice => /ko|kr/i.test(voice.lang));
+    const candidates = koreanVoices.length > 0 ? koreanVoices : speechVoices;
+
+    const defaultOption = document.createElement('option');
+    defaultOption.value = '';
+    defaultOption.textContent = '브라우저 기본';
+    $speechVoiceSelect.appendChild(defaultOption);
+
+    candidates.forEach(voice => {
+      const option = document.createElement('option');
+      option.value = voice.name;
+      option.textContent = `${voice.name} (${voice.lang})`;
+      $speechVoiceSelect.appendChild(option);
+    });
   }
+
+  if (selectedVoiceValue) {
+    $speechVoiceSelect.value = selectedVoiceValue;
+  }
+  if (!$speechVoiceSelect.value) {
+    $speechVoiceSelect.value = GOOGLE_TTS_VOICE_PREFIX + GOOGLE_TTS_VOICES[0].name;
+    selectedVoiceValue = $speechVoiceSelect.value;
+  }
+  selectedSpeechVoice = speechVoices.find(v => v.name === $speechVoiceSelect.value) || null;
 }
 
 function closeSpeechSettings() {
@@ -177,7 +202,7 @@ function updateSpeechButtonState() {
   if (!$btnReadAloud) return;
 
   const browserActive = speechSupportEnabled && (window.speechSynthesis.speaking || window.speechSynthesis.pending);
-  const active = isSpeechPlaying || browserActive;
+  const active = isSpeechPlaying || browserActive || !!currentGoogleAudio;
   $btnReadAloud.classList.toggle('is-playing', active);
   $btnReadAloud.textContent = active ? '⏹' : '🔊';
   $btnReadAloud.setAttribute('aria-label', active ? '정지' : '읽어주기');
@@ -185,9 +210,26 @@ function updateSpeechButtonState() {
   $btnReadAloud.disabled = false;
 }
 
+let _toastTimer = null;
+function showToast(message, durationMs = 4000) {
+  const el = document.getElementById('toast');
+  if (!el) return;
+  el.textContent = message;
+  el.classList.remove('hidden');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => el.classList.add('hidden'), durationMs);
+}
+
 function stopSpeech() {
+  clearTimeout(_repeatTimeout);
+  _repeatTimeout = null;
   clearInterval(speechKeepAliveInterval);
   speechKeepAliveInterval = null;
+  if (currentGoogleAudio) {
+    currentGoogleAudio.pause();
+    currentGoogleAudio.src = '';
+    currentGoogleAudio = null;
+  }
   if (speechSupportEnabled) window.speechSynthesis.cancel();
   speechQueue = [];
   isSpeechPlaying = false;
@@ -208,17 +250,106 @@ function getSpeechText(item) {
   return parts.join('. ');
 }
 
-function speakQueue() {
+async function speakQueue() {
   clearInterval(speechKeepAliveInterval);
   speechKeepAliveInterval = null;
 
   if (!speechQueue.length) {
+    if (isRepeatOn) {
+      updateSpeechButtonState();
+      _repeatTimeout = setTimeout(() => {
+        _repeatTimeout = null;
+        const items = filteredItems();
+        speechQueue = items.map(getSpeechText).filter(Boolean);
+        if (speechQueue.length) speakQueue();
+        else {
+          isSpeechPlaying = false;
+          updateSpeechButtonState();
+        }
+      }, 2000);
+      return;
+    }
     isSpeechPlaying = false;
     updateSpeechButtonState();
     return;
   }
 
   const text = speechQueue.shift();
+  const voiceValue = $speechVoiceSelect ? $speechVoiceSelect.value : '';
+
+  if (voiceValue.startsWith(GOOGLE_TTS_VOICE_PREFIX)) {
+    await speakQueueItemGoogle(text, voiceValue.slice(GOOGLE_TTS_VOICE_PREFIX.length));
+  } else {
+    speakQueueItemBrowser(text);
+  }
+}
+
+async function speakQueueItemGoogle(text, voiceName) {
+  const apiKey = window.GOOGLE_TTS_API_KEY;
+  if (!apiKey) {
+    speakQueueItemBrowser(text);
+    return;
+  }
+
+  try {
+    const response = await fetch(
+      `https://texttospeech.googleapis.com/v1/text:synthesize?key=${encodeURIComponent(apiKey)}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          input: { text },
+          voice: { languageCode: 'ko-KR', name: voiceName },
+          audioConfig: { audioEncoding: 'MP3', speakingRate: 1.0, pitch: 0.0 },
+        }),
+      }
+    );
+
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+    const { audioContent } = await response.json();
+    const binary = atob(audioContent);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    const blob = new Blob([bytes], { type: 'audio/mpeg' });
+    const url = URL.createObjectURL(blob);
+
+    const audio = new Audio(url);
+    currentGoogleAudio = audio;
+    updateSpeechButtonState();
+
+    audio.onended = () => {
+      URL.revokeObjectURL(url);
+      currentGoogleAudio = null;
+      speakQueue();
+    };
+    audio.onerror = () => {
+      URL.revokeObjectURL(url);
+      currentGoogleAudio = null;
+      isSpeechPlaying = false;
+      updateSpeechButtonState();
+    };
+
+    await audio.play();
+  } catch (error) {
+    console.warn('[Google TTS] 실패, 브라우저 TTS로 대체:', error.message);
+    currentGoogleAudio = null;
+    const isQuota = /429|403/.test(error.message);
+    const msg = isQuota
+      ? 'Google 음성 사용량 초과\n브라우저 기본 음성으로 계속 읽습니다'
+      : 'Google 음성 연결 실패\n브라우저 기본 음성으로 계속 읽습니다';
+    showToast(msg);
+    speakQueueItemBrowser(text);
+  }
+}
+
+function speakQueueItemBrowser(text) {
+  if (!speechSupportEnabled) {
+    isSpeechPlaying = false;
+    updateSpeechButtonState();
+    return;
+  }
+
   const utterance = new SpeechSynthesisUtterance(text);
   utterance.lang = selectedSpeechVoice?.lang || 'ko-KR';
   utterance.voice = selectedSpeechVoice || null;
@@ -226,8 +357,6 @@ function speakQueue() {
   utterance.pitch = 1;
   utterance.volume = 1;
   utterance.onstart = () => {
-    isSpeechPlaying = true;
-    updateSpeechButtonState();
     speechKeepAliveInterval = setInterval(() => {
       if (!window.speechSynthesis.speaking) {
         clearInterval(speechKeepAliveInterval);
@@ -254,12 +383,16 @@ function speakQueue() {
 }
 
 function readFilteredItems() {
-  if (!speechSupportEnabled) {
+  const voiceValue = $speechVoiceSelect ? $speechVoiceSelect.value : '';
+  const usingGoogle = voiceValue.startsWith(GOOGLE_TTS_VOICE_PREFIX);
+
+  if (!usingGoogle && !speechSupportEnabled) {
     window.alert('이 브라우저는 읽어주기 기능을 지원하지 않습니다.');
     return;
   }
 
-  if (isSpeechPlaying || window.speechSynthesis.speaking || window.speechSynthesis.pending) {
+  const browserBusy = speechSupportEnabled && (window.speechSynthesis.speaking || window.speechSynthesis.pending);
+  if (isSpeechPlaying || !!currentGoogleAudio || browserBusy) {
     stopSpeech();
     return;
   }
@@ -525,6 +658,15 @@ if ($btnReadAloud) {
   $btnReadAloud.addEventListener('click', readFilteredItems);
 }
 
+const $btnRepeat = document.getElementById('btn-quiz-repeat');
+if ($btnRepeat) {
+  $btnRepeat.addEventListener('click', () => {
+    isRepeatOn = !isRepeatOn;
+    $btnRepeat.classList.toggle('is-repeat-on', isRepeatOn);
+    $btnRepeat.setAttribute('aria-pressed', String(isRepeatOn));
+  });
+}
+
 if ($btnSpeechSettings && $speechSettingsPopup) {
   $btnSpeechSettings.addEventListener('click', e => {
     e.stopPropagation();
@@ -542,6 +684,7 @@ if ($btnSpeechSettings && $speechSettingsPopup) {
 
 if ($speechVoiceSelect) {
   $speechVoiceSelect.addEventListener('change', () => {
+    selectedVoiceValue = $speechVoiceSelect.value;
     selectedSpeechVoice = speechVoices.find(voice => voice.name === $speechVoiceSelect.value) || null;
   });
 }
@@ -552,8 +695,8 @@ if ($speechModeSelect) {
   });
 }
 
+populateSpeechVoiceOptions();
 if (speechSupportEnabled) {
-  populateSpeechVoiceOptions();
   window.speechSynthesis.addEventListener('voiceschanged', populateSpeechVoiceOptions);
   setTimeout(populateSpeechVoiceOptions, 500);
 }

@@ -119,6 +119,7 @@
             <button class="reveal-btn hidden" id="reveal-all" type="button">전체 공개</button>
             <div class="quiz-speech-controls" role="group" aria-label="암송 읽어주기">
               <button id="btn-quiz-read-aloud" class="nav-btn speech-icon-btn" type="button" aria-pressed="false" aria-label="읽어주기">🔊</button>
+              <button id="btn-quiz-repeat" class="nav-btn ghost speech-icon-btn" type="button" aria-pressed="false" aria-label="반복 재생">🔁</button>
               <button id="btn-quiz-speech-settings" class="nav-btn ghost speech-icon-btn" type="button" aria-label="읽기 설정" aria-haspopup="true" aria-expanded="false">⚙️</button>
               <div id="quiz-speech-settings-popup" class="speech-settings-popup hidden" role="dialog" aria-label="읽기 설정">
                 <label class="speech-voice-control" for="quiz-speech-mode-select">
@@ -141,6 +142,8 @@
 
       <ol class="quiz-list" id="quiz-list" aria-label="소요리문답 암송 목록"></ol>
     </main>
+
+    <div id="toast" class="toast hidden" role="alert" aria-live="assertive"></div>
 
     <script src="config.js?v=1"></script>
     <script src="data.js?v=1"></script>
