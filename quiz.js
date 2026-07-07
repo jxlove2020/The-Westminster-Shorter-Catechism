@@ -268,7 +268,8 @@ function readFilteredItems() {
   speechQueue = items.map(getSpeechText).filter(Boolean);
   if (!speechQueue.length) return;
 
-  stopSpeech();
+  isSpeechPlaying = true;
+  updateSpeechButtonState();
   speakQueue();
 }
 
