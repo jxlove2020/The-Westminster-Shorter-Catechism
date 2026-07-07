@@ -595,12 +595,10 @@ main {
 }
 
 .detail-question {
-  padding-bottom: 16px;
   font-family: 'Noto Serif KR', serif;
   font-size: 1.42rem;
   line-height: 1.58;
   letter-spacing: -0.03em;
-  border-bottom: 1px solid rgba(183, 134, 40, 0.22);
 }
 
 .answer-box,
