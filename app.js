@@ -42,8 +42,8 @@ const speechSupportEnabled = 'speechSynthesis' in window && 'SpeechSynthesisUtte
 const GOOGLE_TTS_VOICE_PREFIX = 'google:';
 const GOOGLE_TTS_VOICES = [
   { name: 'ko-KR-Neural2-A', label: 'Neural2-A (여성)' },
-  { name: 'ko-KR-Neural2-B', label: 'Neural2-B (남성)' },
-  { name: 'ko-KR-Neural2-C', label: 'Neural2-C (여성)' },
+  { name: 'ko-KR-Neural2-B', label: 'Neural2-B (여성)' },
+  { name: 'ko-KR-Neural2-C', label: 'Neural2-C (남성)' },
   { name: 'ko-KR-Neural2-D', label: 'Neural2-D (남성)' },
 ];
 
