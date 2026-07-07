@@ -31,10 +31,19 @@ let currentFontSizeScale = loadStoredFontSizeScale();
 let currentIndex = null;
 let speechVoices = [];
 let selectedSpeechVoice = null;
+let selectedVoiceValue = '';
 let selectedSpeechMode = 'question-answer';
 let isSpeechPlaying = false;
 let speechKeepAliveInterval = null;
+let currentGoogleAudio = null;
 const speechSupportEnabled = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
+const GOOGLE_TTS_VOICE_PREFIX = 'google:';
+const GOOGLE_TTS_VOICES = [
+  { name: 'ko-KR-Neural2-A', label: 'Neural2-A (여성)' },
+  { name: 'ko-KR-Neural2-B', label: 'Neural2-B (남성)' },
+  { name: 'ko-KR-Neural2-C', label: 'Neural2-C (여성)' },
+  { name: 'ko-KR-Neural2-D', label: 'Neural2-D (남성)' },
+];
 
 function loadStoredFontSizeScale() {
   try {
@@ -113,47 +122,48 @@ function matchesQuery(item, query) {
 }
 
 function populateSpeechVoiceOptions() {
-  console.log('[Speech] populateSpeechVoiceOptions called', {
-    speechSupportEnabled,
-    speechVoiceSelect: !!speechVoiceSelect,
-  });
-
-  if (!speechSupportEnabled || !speechVoiceSelect) {
-    console.log('[Speech] Speech support disabled or no select element');
-    return;
-  }
-
-  speechVoices = window.speechSynthesis.getVoices();
-  console.log('[Speech] Available voices:', speechVoices.length);
-
-  const koreanVoices = speechVoices.filter(voice => /ko|kr/i.test(voice.lang));
-  console.log('[Speech] Korean voices:', koreanVoices.length);
-
-  const candidates = koreanVoices.length > 0 ? koreanVoices : speechVoices;
+  if (!speechVoiceSelect) return;
 
   speechVoiceSelect.innerHTML = '';
 
-  const defaultOption = document.createElement('option');
-  defaultOption.value = '';
-  defaultOption.textContent = '브라우저 기본';
-  speechVoiceSelect.appendChild(defaultOption);
-
-  candidates.forEach(voice => {
+  GOOGLE_TTS_VOICES.forEach(voice => {
     const option = document.createElement('option');
-    option.value = voice.name;
-    option.textContent = `${voice.name} (${voice.lang})`;
+    option.value = GOOGLE_TTS_VOICE_PREFIX + voice.name;
+    option.textContent = '✦ Google ' + voice.label;
     speechVoiceSelect.appendChild(option);
   });
 
-  if (selectedSpeechVoice) {
-    speechVoiceSelect.value = selectedSpeechVoice.name;
-  } else {
-    const preferredVoice = candidates.find(voice => /ko|kr/i.test(voice.lang)) || candidates[0] || null;
-    if (preferredVoice) {
-      speechVoiceSelect.value = preferredVoice.name;
-      selectedSpeechVoice = preferredVoice;
-    }
+  if (speechSupportEnabled) {
+    const sep = document.createElement('option');
+    sep.disabled = true;
+    sep.textContent = '─────────────';
+    speechVoiceSelect.appendChild(sep);
+
+    speechVoices = window.speechSynthesis.getVoices();
+    const koreanVoices = speechVoices.filter(voice => /ko|kr/i.test(voice.lang));
+    const candidates = koreanVoices.length > 0 ? koreanVoices : speechVoices;
+
+    const defaultOption = document.createElement('option');
+    defaultOption.value = '';
+    defaultOption.textContent = '브라우저 기본';
+    speechVoiceSelect.appendChild(defaultOption);
+
+    candidates.forEach(voice => {
+      const option = document.createElement('option');
+      option.value = voice.name;
+      option.textContent = `${voice.name} (${voice.lang})`;
+      speechVoiceSelect.appendChild(option);
+    });
   }
+
+  if (selectedVoiceValue) {
+    speechVoiceSelect.value = selectedVoiceValue;
+  }
+  if (!speechVoiceSelect.value) {
+    speechVoiceSelect.value = GOOGLE_TTS_VOICE_PREFIX + GOOGLE_TTS_VOICES[0].name;
+    selectedVoiceValue = speechVoiceSelect.value;
+  }
+  selectedSpeechVoice = speechVoices.find(v => v.name === speechVoiceSelect.value) || null;
 }
 
 function closeSpeechSettings() {
@@ -163,11 +173,10 @@ function closeSpeechSettings() {
 }
 
 function updateSpeechButtonState() {
-  if (!btnReadAloud || !speechSupportEnabled) {
-    return;
-  }
+  if (!btnReadAloud) return;
 
-  const active = isSpeechPlaying || window.speechSynthesis.speaking || window.speechSynthesis.pending;
+  const browserActive = speechSupportEnabled && (window.speechSynthesis.speaking || window.speechSynthesis.pending);
+  const active = isSpeechPlaying || browserActive || !!currentGoogleAudio;
   btnReadAloud.classList.toggle('is-playing', active);
   btnReadAloud.textContent = active ? '⏹' : '🔊';
   btnReadAloud.setAttribute('aria-label', active ? '정지' : '읽어주기');
@@ -176,13 +185,19 @@ function updateSpeechButtonState() {
 }
 
 function stopSpeech() {
-  if (!speechSupportEnabled) {
-    return;
-  }
-
   clearInterval(speechKeepAliveInterval);
   speechKeepAliveInterval = null;
-  window.speechSynthesis.cancel();
+
+  if (currentGoogleAudio) {
+    currentGoogleAudio.pause();
+    currentGoogleAudio.src = '';
+    currentGoogleAudio = null;
+  }
+
+  if (speechSupportEnabled) {
+    window.speechSynthesis.cancel();
+  }
+
   isSpeechPlaying = false;
   updateSpeechButtonState();
 }
@@ -228,26 +243,7 @@ function getCurrentSpeechText() {
   return parts.join('. ');
 }
 
-function speakCurrentItem() {
-  if (!speechSupportEnabled) {
-    window.alert('이 브라우저는 읽어주기 기능을 지원하지 않습니다.');
-    return;
-  }
-
-  if (currentIndex === null) {
-    return;
-  }
-
-  if (isSpeechPlaying || window.speechSynthesis.speaking || window.speechSynthesis.pending) {
-    stopSpeech();
-    return;
-  }
-
-  const speechText = getCurrentSpeechText();
-  if (!speechText.trim()) {
-    return;
-  }
-
+function speakWithBrowserTts(speechText) {
   stopSpeech();
 
   const utterance = new SpeechSynthesisUtterance(speechText);
@@ -286,6 +282,94 @@ function speakCurrentItem() {
   }, 10000);
 
   updateSpeechButtonState();
+}
+
+async function speakWithGoogleTts(speechText, voiceName) {
+  const apiKey = window.GOOGLE_TTS_API_KEY;
+
+  if (!apiKey) {
+    if (speechSupportEnabled) speakWithBrowserTts(speechText);
+    return;
+  }
+
+  isSpeechPlaying = true;
+  updateSpeechButtonState();
+
+  try {
+    const response = await fetch(
+      `https://texttospeech.googleapis.com/v1/text:synthesize?key=${encodeURIComponent(apiKey)}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          input: { text: speechText },
+          voice: { languageCode: 'ko-KR', name: voiceName },
+          audioConfig: { audioEncoding: 'MP3', speakingRate: 1.0, pitch: 0.0 },
+        }),
+      }
+    );
+
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+    const { audioContent } = await response.json();
+
+    const binary = atob(audioContent);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    const blob = new Blob([bytes], { type: 'audio/mpeg' });
+    const url = URL.createObjectURL(blob);
+
+    const audio = new Audio(url);
+    currentGoogleAudio = audio;
+
+    audio.onended = () => {
+      URL.revokeObjectURL(url);
+      currentGoogleAudio = null;
+      isSpeechPlaying = false;
+      updateSpeechButtonState();
+    };
+    audio.onerror = () => {
+      URL.revokeObjectURL(url);
+      currentGoogleAudio = null;
+      isSpeechPlaying = false;
+      updateSpeechButtonState();
+    };
+
+    await audio.play();
+    updateSpeechButtonState();
+
+  } catch (error) {
+    console.warn('[Google TTS] 실패, 브라우저 TTS로 대체:', error.message);
+    currentGoogleAudio = null;
+    isSpeechPlaying = false;
+    if (speechSupportEnabled) speakWithBrowserTts(speechText);
+    else updateSpeechButtonState();
+  }
+}
+
+async function speakCurrentItem() {
+  if (currentIndex === null) return;
+
+  const browserBusy = speechSupportEnabled && (window.speechSynthesis.speaking || window.speechSynthesis.pending);
+  if (isSpeechPlaying || !!currentGoogleAudio || browserBusy) {
+    stopSpeech();
+    return;
+  }
+
+  const speechText = getCurrentSpeechText();
+  if (!speechText.trim()) return;
+
+  const voiceValue = speechVoiceSelect ? speechVoiceSelect.value : '';
+
+  if (voiceValue.startsWith(GOOGLE_TTS_VOICE_PREFIX)) {
+    await speakWithGoogleTts(speechText, voiceValue.slice(GOOGLE_TTS_VOICE_PREFIX.length));
+  } else {
+    if (!speechSupportEnabled) {
+      window.alert('이 브라우저는 읽어주기 기능을 지원하지 않습니다.');
+      return;
+    }
+    speakWithBrowserTts(speechText);
+  }
 }
 
 function renderList(query = '') {
@@ -697,10 +781,9 @@ if (btnClearCache) {
   });
 }
 
+populateSpeechVoiceOptions();
 if (speechSupportEnabled) {
-  populateSpeechVoiceOptions();
   window.speechSynthesis.addEventListener('voiceschanged', populateSpeechVoiceOptions);
-  // GitHub Pages 등 HTTPS 환경에서 voiceschanged가 발화되지 않는 경우 대비
   setTimeout(populateSpeechVoiceOptions, 500);
 }
 
@@ -725,6 +808,7 @@ if (btnSpeechSettings && speechSettingsPopup) {
 
 if (speechVoiceSelect) {
   speechVoiceSelect.addEventListener('change', () => {
+    selectedVoiceValue = speechVoiceSelect.value;
     selectedSpeechVoice = speechVoices.find(voice => voice.name === speechVoiceSelect.value) || null;
   });
 }

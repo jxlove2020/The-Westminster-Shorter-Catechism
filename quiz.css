@@ -213,40 +213,11 @@
 }
 
 .quiz-speech-controls {
+  position: relative;
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
   gap: 8px;
   margin-bottom: 10px;
-}
-
-.quiz-speech-controls .nav-btn {
-  flex-shrink: 0;
-}
-
-.quiz-speech-controls .speech-voice-control {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 0 12px;
-  min-height: 40px;
-  border: 1px solid rgba(102, 117, 72, 0.24);
-  border-radius: 999px;
-  background: rgba(255, 252, 247, 0.7);
-  color: var(--olive-deep);
-  font-size: 0.9rem;
-}
-
-.quiz-speech-controls .speech-voice-control span {
-  flex-shrink: 0;
-}
-
-.quiz-speech-controls .speech-voice-select {
-  border: none;
-  background: transparent;
-  color: var(--olive-deep);
-  font: inherit;
-  outline: none;
 }
 
 .ctrl-foot {

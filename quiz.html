@@ -116,20 +116,21 @@
             <button class="stage-btn" data-s="3" title="답을 전부 가립니다">3단계</button>
           </div>
           <div class="quiz-speech-controls" role="group" aria-label="암송 읽어주기">
-            <button id="btn-quiz-read-aloud" class="nav-btn ghost" type="button" aria-pressed="false">
-              🔊 읽어주기
-            </button>
-            <label class="speech-voice-control" for="quiz-speech-mode-select">
-              <span>읽을 내용</span>
-              <select id="quiz-speech-mode-select" class="speech-voice-select">
-                <option value="question-answer">질문 + 답</option>
-                <option value="answer">답만</option>
-              </select>
-            </label>
-            <label class="speech-voice-control" for="quiz-speech-voice-select">
-              <span>음성</span>
-              <select id="quiz-speech-voice-select" class="speech-voice-select"></select>
-            </label>
+            <button id="btn-quiz-read-aloud" class="nav-btn speech-icon-btn" type="button" aria-pressed="false" aria-label="읽어주기">🔊</button>
+            <button id="btn-quiz-speech-settings" class="nav-btn ghost speech-icon-btn" type="button" aria-label="읽기 설정" aria-haspopup="true" aria-expanded="false">⚙️</button>
+            <div id="quiz-speech-settings-popup" class="speech-settings-popup hidden" role="dialog" aria-label="읽기 설정">
+              <label class="speech-voice-control" for="quiz-speech-mode-select">
+                <span>읽을 내용</span>
+                <select id="quiz-speech-mode-select" class="speech-voice-select">
+                  <option value="question-answer">질문 + 답</option>
+                  <option value="answer">답만</option>
+                </select>
+              </label>
+              <label class="speech-voice-control" for="quiz-speech-voice-select">
+                <span>음성</span>
+                <select id="quiz-speech-voice-select" class="speech-voice-select"></select>
+              </label>
+            </div>
           </div>
           <div class="ctrl-foot">
             <button class="reveal-btn hidden" id="reveal-all" type="button">전체 공개</button>
@@ -141,7 +142,8 @@
       <ol class="quiz-list" id="quiz-list" aria-label="소요리문답 암송 목록"></ol>
     </main>
 
-    <script src="data.js"></script>
-    <script src="quiz.js"></script>
+    <script src="config.js?v=1"></script>
+    <script src="data.js?v=1"></script>
+    <script src="quiz.js?v=1"></script>
   </body>
 </html>

@@ -71,6 +71,7 @@ let selectedSpeechVoice = null;
 let selectedSpeechMode = 'question-answer';
 let isSpeechPlaying = false;
 let speechQueue = [];
+let speechKeepAliveInterval = null;
 const speechSupportEnabled = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
 
 function filteredItems() {
@@ -106,6 +107,8 @@ const $progress = document.getElementById('progress');
 const $revealAll = document.getElementById('reveal-all');
 const $fontDisplay = document.getElementById('font-size-display');
 const $btnReadAloud = document.getElementById('btn-quiz-read-aloud');
+const $btnSpeechSettings = document.getElementById('btn-quiz-speech-settings');
+const $speechSettingsPopup = document.getElementById('quiz-speech-settings-popup');
 const $speechModeSelect = document.getElementById('quiz-speech-mode-select');
 const $speechVoiceSelect = document.getElementById('quiz-speech-voice-select');
 const dynStyle = document.createElement('style');
@@ -133,22 +136,10 @@ function updateProgress() {
 }
 
 function populateSpeechVoiceOptions() {
-  console.log('[Quiz Speech] populateSpeechVoiceOptions called', {
-    speechSupportEnabled,
-    $speechVoiceSelect: !!$speechVoiceSelect,
-  });
-
-  if (!speechSupportEnabled || !$speechVoiceSelect) {
-    console.log('[Quiz Speech] Speech support disabled or no select element');
-    return;
-  }
+  if (!speechSupportEnabled || !$speechVoiceSelect) return;
 
   speechVoices = window.speechSynthesis.getVoices();
-  console.log('[Quiz Speech] Available voices:', speechVoices.length);
-
   const koreanVoices = speechVoices.filter(voice => /ko|kr/i.test(voice.lang));
-  console.log('[Quiz Speech] Korean voices:', koreanVoices.length);
-
   const candidates = koreanVoices.length > 0 ? koreanVoices : speechVoices;
 
   $speechVoiceSelect.innerHTML = '';
@@ -176,19 +167,28 @@ function populateSpeechVoiceOptions() {
   }
 }
 
-function updateSpeechButtonState() {
-  if (!$btnReadAloud || !speechSupportEnabled) return;
+function closeSpeechSettings() {
+  if (!$speechSettingsPopup) return;
+  $speechSettingsPopup.classList.add('hidden');
+  if ($btnSpeechSettings) $btnSpeechSettings.setAttribute('aria-expanded', 'false');
+}
 
-  const active = isSpeechPlaying || window.speechSynthesis.speaking || window.speechSynthesis.pending;
+function updateSpeechButtonState() {
+  if (!$btnReadAloud) return;
+
+  const browserActive = speechSupportEnabled && (window.speechSynthesis.speaking || window.speechSynthesis.pending);
+  const active = isSpeechPlaying || browserActive;
   $btnReadAloud.classList.toggle('is-playing', active);
-  $btnReadAloud.textContent = active ? '⏹ 정지' : '🔊 읽어주기';
+  $btnReadAloud.textContent = active ? '⏹' : '🔊';
+  $btnReadAloud.setAttribute('aria-label', active ? '정지' : '읽어주기');
   $btnReadAloud.setAttribute('aria-pressed', String(active));
   $btnReadAloud.disabled = false;
 }
 
 function stopSpeech() {
-  if (!speechSupportEnabled) return;
-  window.speechSynthesis.cancel();
+  clearInterval(speechKeepAliveInterval);
+  speechKeepAliveInterval = null;
+  if (speechSupportEnabled) window.speechSynthesis.cancel();
   speechQueue = [];
   isSpeechPlaying = false;
   updateSpeechButtonState();
@@ -209,6 +209,9 @@ function getSpeechText(item) {
 }
 
 function speakQueue() {
+  clearInterval(speechKeepAliveInterval);
+  speechKeepAliveInterval = null;
+
   if (!speechQueue.length) {
     isSpeechPlaying = false;
     updateSpeechButtonState();
@@ -225,9 +228,24 @@ function speakQueue() {
   utterance.onstart = () => {
     isSpeechPlaying = true;
     updateSpeechButtonState();
+    speechKeepAliveInterval = setInterval(() => {
+      if (!window.speechSynthesis.speaking) {
+        clearInterval(speechKeepAliveInterval);
+        speechKeepAliveInterval = null;
+        return;
+      }
+      window.speechSynthesis.pause();
+      window.speechSynthesis.resume();
+    }, 10000);
   };
-  utterance.onend = () => speakQueue();
+  utterance.onend = () => {
+    clearInterval(speechKeepAliveInterval);
+    speechKeepAliveInterval = null;
+    speakQueue();
+  };
   utterance.onerror = () => {
+    clearInterval(speechKeepAliveInterval);
+    speechKeepAliveInterval = null;
     isSpeechPlaying = false;
     updateSpeechButtonState();
   };
@@ -506,6 +524,21 @@ if ($btnReadAloud) {
   $btnReadAloud.addEventListener('click', readFilteredItems);
 }
 
+if ($btnSpeechSettings && $speechSettingsPopup) {
+  $btnSpeechSettings.addEventListener('click', e => {
+    e.stopPropagation();
+    const isOpen = !$speechSettingsPopup.classList.contains('hidden');
+    if (isOpen) {
+      closeSpeechSettings();
+    } else {
+      $speechSettingsPopup.classList.remove('hidden');
+      $btnSpeechSettings.setAttribute('aria-expanded', 'true');
+    }
+  });
+  $speechSettingsPopup.addEventListener('click', e => e.stopPropagation());
+  document.addEventListener('click', closeSpeechSettings);
+}
+
 if ($speechVoiceSelect) {
   $speechVoiceSelect.addEventListener('change', () => {
     selectedSpeechVoice = speechVoices.find(voice => voice.name === $speechVoiceSelect.value) || null;
@@ -520,7 +553,8 @@ if ($speechModeSelect) {
 
 if (speechSupportEnabled) {
   populateSpeechVoiceOptions();
-  window.speechSynthesis.onvoiceschanged = populateSpeechVoiceOptions;
+  window.speechSynthesis.addEventListener('voiceschanged', populateSpeechVoiceOptions);
+  setTimeout(populateSpeechVoiceOptions, 500);
 }
 
 // ── 초기화 ───────────────────────────────────────
